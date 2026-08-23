@@ -105,9 +105,141 @@
     "organizationId"
   ],
   "rls": {
-    "read": true,
-    "create": true,
-    "update": true,
-    "delete": true
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "data.members": "{{user.id}}"
+                },
+                {
+                  "data.leadId": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "data.members": {
+                    "$in": [
+                      "{{user.id}}"
+                    ]
+                  }
+                },
+                {
+                  "data.leadId": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
   }
 }
