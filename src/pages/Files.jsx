@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Files, Upload, ShieldCheck, FileText } from "lucide-react";
+import { logActivity } from "@/lib/logActivity";
 
 const empty = { name: "", type: "Document", category: "Other", projectId: "", uploadedBy: "", description: "", tags: "", isEvidence: false };
 
@@ -37,7 +38,7 @@ export default function FilesPage() {
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: fileObj });
-      await base44.entities.FileItem.create({
+      const created = await base44.entities.FileItem.create({
         name: form.name || fileObj.name,
         type: form.type,
         fileUrl: file_url,
@@ -49,6 +50,7 @@ export default function FilesPage() {
         isEvidence: form.isEvidence,
         category: form.category,
       });
+      logActivity({ type: "FILE_UPLOAD", projectId: form.projectId || undefined, fileRefs: [created.id], title: `Uploaded ${created.name}`, source: "Auto" });
       setForm(empty); setFileObj(null); setOpen(false); await load();
     } finally { setUploading(false); }
   };

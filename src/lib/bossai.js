@@ -91,17 +91,45 @@ export const ROLE_COLORS = {
   Student: "bg-teal-100 text-teal-700",
 };
 
+export const ACTIVITY_TYPES = [
+  "FILE_UPLOAD", "FILE_UPDATE", "TASK_CREATED", "TASK_UPDATED", "TASK_COMPLETED",
+  "EXPERIMENT", "MEETING", "CODE_COMMIT", "DATA_GENERATED", "REPORT_CREATED", "MANUAL_NOTE", "OTHER",
+];
+
+export const ACTIVITY_TYPE_LABELS = {
+  FILE_UPLOAD: "File Upload",
+  FILE_UPDATE: "File Update",
+  TASK_CREATED: "Task Created",
+  TASK_UPDATED: "Task Updated",
+  TASK_COMPLETED: "Task Completed",
+  EXPERIMENT: "Experiment",
+  MEETING: "Meeting",
+  CODE_COMMIT: "Code Commit",
+  DATA_GENERATED: "Data Generated",
+  REPORT_CREATED: "Report Created",
+  MANUAL_NOTE: "Manual Note",
+  OTHER: "Other",
+};
+
 export const ACTIVITY_TYPE_COLORS = {
-  Experiment: "bg-violet-100 text-violet-700",
-  Simulation: "bg-blue-100 text-blue-700",
-  Writing: "bg-amber-100 text-amber-700",
-  Reading: "bg-slate-100 text-slate-600",
-  Meeting: "bg-teal-100 text-teal-700",
-  Code: "bg-indigo-100 text-indigo-700",
-  Fabrication: "bg-orange-100 text-orange-700",
-  Discussion: "bg-emerald-100 text-emerald-700",
-  FileUpload: "bg-blue-100 text-blue-700",
-  Other: "bg-slate-100 text-slate-500",
+  FILE_UPLOAD: "bg-blue-100 text-blue-700",
+  FILE_UPDATE: "bg-sky-100 text-sky-700",
+  TASK_CREATED: "bg-slate-100 text-slate-600",
+  TASK_UPDATED: "bg-amber-100 text-amber-700",
+  TASK_COMPLETED: "bg-emerald-100 text-emerald-700",
+  EXPERIMENT: "bg-violet-100 text-violet-700",
+  MEETING: "bg-teal-100 text-teal-700",
+  CODE_COMMIT: "bg-indigo-100 text-indigo-700",
+  DATA_GENERATED: "bg-cyan-100 text-cyan-700",
+  REPORT_CREATED: "bg-orange-100 text-orange-700",
+  MANUAL_NOTE: "bg-slate-100 text-slate-600",
+  OTHER: "bg-slate-100 text-slate-500",
+};
+
+export const ACTIVITY_SOURCE_COLORS = {
+  Manual: "bg-slate-100 text-slate-500",
+  Auto: "bg-blue-50 text-blue-600",
+  Imported: "bg-violet-50 text-violet-600",
 };
 
 export function formatDate(d) {

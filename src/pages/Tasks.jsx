@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ListChecks, Plus, Calendar } from "lucide-react";
 import { formatDate, daysUntil, STATUS_LABELS } from "@/lib/bossai";
+import { logActivity } from "@/lib/logActivity";
 
 const COLUMNS = ["TODO", "IN_PROGRESS", "BLOCKED", "COMPLETED", "CANCELLED"];
 const empty = { title: "", description: "", projectId: "", assigneeId: "", status: "TODO", priority: "P2", type: "Other", dueDate: "", estimatedHours: "" };
@@ -41,6 +42,14 @@ export default function Tasks() {
     setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status } : t)));
     const patch = { status, completedAt: status === "COMPLETED" ? new Date().toISOString().slice(0, 10) : undefined };
     await base44.entities.Task.update(task.id, patch);
+    logActivity({
+      type: status === "COMPLETED" ? "TASK_COMPLETED" : "TASK_UPDATED",
+      projectId: task.projectId,
+      taskId: task.id,
+      title: status === "COMPLETED" ? `Task completed: ${task.title}` : `Task updated: ${task.title}`,
+      description: `Status → ${STATUS_LABELS[status] || status}`,
+      source: "Auto",
+    });
   };
 
   const save = async () => {
@@ -48,7 +57,8 @@ export default function Tasks() {
     setSaving(true);
     try {
       const me = await base44.auth.me();
-      await base44.entities.Task.create({ ...form, organizationId: me.organizationId, estimatedHours: form.estimatedHours ? Number(form.estimatedHours) : undefined, tags: [], dependencies: [], evidenceRefs: [] });
+      const created = await base44.entities.Task.create({ ...form, organizationId: me.organizationId, estimatedHours: form.estimatedHours ? Number(form.estimatedHours) : undefined, tags: [], dependencies: [], evidenceRefs: [] });
+      logActivity({ type: "TASK_CREATED", projectId: created.projectId, taskId: created.id, title: `Task created: ${created.title}`, source: "Auto" });
       setForm(empty); setOpen(false); await load();
     } finally { setSaving(false); }
   };
