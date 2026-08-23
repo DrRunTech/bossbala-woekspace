@@ -112,6 +112,16 @@
       "type": "string",
       "title": "AI Summary"
     },
+    "aiConfidence": {
+      "type": "number",
+      "default": 0,
+      "title": "AI Confidence"
+    },
+    "aiData": {
+      "type": "object",
+      "default": {},
+      "title": "AI Analysis Data"
+    },
     "keywords": {
       "type": "array",
       "items": {

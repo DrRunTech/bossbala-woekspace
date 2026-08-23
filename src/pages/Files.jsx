@@ -13,7 +13,7 @@ import { Files, Upload, ShieldCheck, FileText, HardDrive, Hash, Sparkles, AlertC
 import { relativeTime } from "@/lib/bossai";
 import { logActivity } from "@/lib/logActivity";
 import {
-  uploadToStorage, computeChecksum, detectDocumentType, isAllowedFile, entityTypeFor, shouldSummarize,
+  uploadToStorage, computeChecksum, detectDocumentType, isAllowedFile, entityTypeFor,
   ALLOWED_DOCUMENT_TYPES, getStorageBackend, availableBackends,
 } from "@/lib/storage";
 
@@ -86,17 +86,21 @@ export default function FilesPage() {
       const checksum = await computeChecksum(fileObj);
       const existing = await base44.entities.FileAsset.filter({ checksum }, "-created_date", 1);
 
-      let fileUrl, storageRef, storageBackend, aiSummary = "", keywords = [];
+      let fileUrl, storageRef, storageBackend;
       let version = 1;
       let reused = false;
+      let aiSummary = "", aiConfidence = 0, aiData = {}, keywords = [], isEvidence = form.isEvidence;
 
       if (existing.length > 0) {
-        // Dedup: reuse the physical file, don't upload again.
+        // Dedup: reuse the physical file, don't upload again. Copy the existing
+        // AI analysis so we don't re-run the workflow on identical content.
         const ref = existing[0];
         fileUrl = ref.fileUrl;
         storageRef = ref.storageRef;
         storageBackend = ref.storageBackend || "base44";
         aiSummary = ref.aiSummary || "";
+        aiConfidence = ref.aiConfidence || 0;
+        aiData = ref.aiData || {};
         keywords = ref.keywords || [];
         version = (ref.version || 1) + 1;
         reused = true;
@@ -107,23 +111,6 @@ export default function FilesPage() {
         fileUrl = stored.fileUrl;
         storageRef = stored.storageRef;
         storageBackend = stored.backend;
-
-        // AI summary + keywords from the file content.
-        if (shouldSummarize(documentType)) {
-          setStage("Generating AI summary…");
-          try {
-            const res = await base44.integrations.Core.InvokeLLM({
-              prompt: "You are a research lab assistant. Summarize this file in 1-2 plain sentences and extract 3-6 relevant research keywords. Return JSON only.",
-              file_urls: [fileUrl],
-              response_json_schema: {
-                type: "object",
-                properties: { summary: { type: "string" }, keywords: { type: "array", items: { type: "string" } } },
-              },
-            });
-            aiSummary = res.summary || "";
-            keywords = (res.keywords || []).slice(0, 8);
-          } catch { /* best effort */ }
-        }
       }
 
       setStage("Saving file record…");
@@ -143,12 +130,22 @@ export default function FilesPage() {
         description: form.description,
         tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
         category: form.category,
-        isEvidence: form.isEvidence,
+        isEvidence,
         checksum,
         version,
         aiSummary,
+        aiConfidence,
+        aiData,
         keywords,
       });
+
+      // Run the AI document-processing workflow for genuinely new files.
+      if (!reused) {
+        setStage("Running AI analysis workflow…");
+        try {
+          await base44.functions.invoke("processFileAsset", { fileAssetId: created.id });
+        } catch { /* workflow failure doesn't block the upload */ }
+      }
 
       logActivity({
         type: "FILE_UPLOAD",
@@ -247,7 +244,8 @@ export default function FilesPage() {
                 <span className="flex items-center gap-1" title="Storage backend"><HardDrive className="h-3 w-3" />{f.storageBackend || "base44"}</span>
                 {f.checksum && <span className="flex items-center gap-1" title={f.checksum}><Hash className="h-3 w-3" />{f.checksum.slice(0, 8)}</span>}
                 {f.version > 1 && <span>v{f.version}</span>}
-                {f.aiSummary && <span className="flex items-center gap-1 text-blue-500"><Sparkles className="h-3 w-3" />AI</span>}
+                {f.aiConfidence > 0 && <span className="flex items-center gap-1 text-blue-500">AI {Math.round(f.aiConfidence * 100)}%</span>}
+                {f.aiData?.uncertainFields?.length > 0 && <span className="text-amber-600" title={`Uncertain: ${f.aiData.uncertainFields.join(", ")}`}>⚠ uncertain</span>}
               </div>
             </a>
           ))}

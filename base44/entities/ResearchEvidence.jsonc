@@ -75,8 +75,7 @@
   },
   "required": [
     "title",
-    "type",
-    "activityId"
+    "type"
   ],
   "rls": {
     "read": {
