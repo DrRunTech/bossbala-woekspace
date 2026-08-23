@@ -202,6 +202,12 @@ const translations = {
 
 const LanguageContext = createContext(null);
 
+const FALLBACK = {
+  lang: "en",
+  setLang: () => {},
+  t: (key) => translations.en[key] ?? key,
+};
+
 export function LanguageProvider({ children }) {
   const [lang, setLangState] = useState(() => {
     if (typeof window === "undefined") return "en";
@@ -226,6 +232,5 @@ export function LanguageProvider({ children }) {
 
 export function useLanguage() {
   const ctx = useContext(LanguageContext);
-  if (!ctx) throw new Error("useLanguage must be used within LanguageProvider");
-  return ctx;
+  return ctx || FALLBACK;
 }
