@@ -1,0 +1,45 @@
+{
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 8 * * *",
+      "one_time_date": null,
+      "timezone": "Asia/Shanghai",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Automatic Risk Detection",
+  "description": "Scans tasks, projects, activities, audit logs, and experimental data daily to detect research risks (overdue/stalled/blocked tasks, inactivity gaps, repeated delays, activity drops, data anomalies, insufficient progress) and records them as RISK AIInsight records.",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "automatic_risk_detection",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "detect_risks": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "detectRisks",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Detect research risks",
+            "description": "Scan data and create RISK insights"
+          }
+        }
+      }
+    ]
+  }
+}

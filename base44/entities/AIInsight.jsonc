@@ -24,6 +24,10 @@
       "default": "SUMMARY",
       "title": "Type"
     },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
     "projectId": {
       "type": "string",
       "title": "Project"
