@@ -8,7 +8,7 @@
     },
     "name": {
       "type": "string",
-      "title": "Name"
+      "title": "Filename"
     },
     "type": {
       "type": "string",
@@ -20,10 +20,15 @@
         "Video",
         "Presentation",
         "Spreadsheet",
+        "Archive",
         "Other"
       ],
       "default": "Other",
-      "title": "Type"
+      "title": "Entity Type"
+    },
+    "documentType": {
+      "type": "string",
+      "title": "Document Type"
     },
     "fileUrl": {
       "type": "string",
@@ -40,6 +45,11 @@
     "storageRef": {
       "type": "string",
       "title": "Storage Reference"
+    },
+    "storageBackend": {
+      "type": "string",
+      "default": "base44",
+      "title": "Storage Backend"
     },
     "projectId": {
       "type": "string",
@@ -88,6 +98,27 @@
       "type": "boolean",
       "default": false,
       "title": "Is Evidence"
+    },
+    "checksum": {
+      "type": "string",
+      "title": "Checksum (SHA-256)"
+    },
+    "version": {
+      "type": "number",
+      "default": 1,
+      "title": "Version"
+    },
+    "aiSummary": {
+      "type": "string",
+      "title": "AI Summary"
+    },
+    "keywords": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Keywords"
     }
   },
   "required": [

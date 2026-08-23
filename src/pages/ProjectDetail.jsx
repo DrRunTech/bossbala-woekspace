@@ -49,7 +49,7 @@ export default function ProjectDetail() {
         base44.entities.Project.get(id),
         base44.entities.Task.filter({ projectId: id }, "-created_date", 200),
         base44.entities.Activity.filter({ projectId: id }, "-date", 50),
-        base44.entities.FileItem.filter({ projectId: id }, "-created_date", 100),
+        base44.entities.FileAsset.filter({ projectId: id }, "-created_date", 100),
         base44.entities.Risk.filter({ projectId: id }, "-created_date", 100),
         base44.entities.Decision.filter({ projectId: id }, "-decidedAt", 50),
         base44.entities.AIInsight.filter({ projectId: id }, "-created_date", 20),
