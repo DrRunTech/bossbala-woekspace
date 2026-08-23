@@ -1,0 +1,151 @@
+// Shared helpers and label/color maps for BossAI Research
+
+export const STATUS_COLORS = {
+  // Project status
+  Planning: "bg-slate-100 text-slate-600",
+  Active: "bg-blue-100 text-blue-700",
+  OnHold: "bg-amber-100 text-amber-700",
+  Completed: "bg-emerald-100 text-emerald-700",
+  Cancelled: "bg-slate-100 text-slate-400 line-through",
+  // Task status
+  Backlog: "bg-slate-100 text-slate-600",
+  InProgress: "bg-blue-100 text-blue-700",
+  InReview: "bg-violet-100 text-violet-700",
+  Done: "bg-emerald-100 text-emerald-700",
+  Blocked: "bg-rose-100 text-rose-700",
+  // Member status
+  OnLeave: "bg-amber-100 text-amber-700",
+  Inactive: "bg-slate-100 text-slate-400",
+  // Risk status
+  Identified: "bg-blue-100 text-blue-700",
+  Monitoring: "bg-amber-100 text-amber-700",
+  Mitigating: "bg-orange-100 text-orange-700",
+  Resolved: "bg-emerald-100 text-emerald-700",
+  Ignored: "bg-slate-100 text-slate-400",
+  // Milestone
+  Planned: "bg-slate-100 text-slate-600",
+  Achieved: "bg-emerald-100 text-emerald-700",
+  Missed: "bg-rose-100 text-rose-700",
+  Delayed: "bg-amber-100 text-amber-700",
+};
+
+export const PRIORITY_COLORS = {
+  P0: "bg-rose-100 text-rose-700",
+  P1: "bg-orange-100 text-orange-700",
+  P2: "bg-blue-100 text-blue-700",
+  P3: "bg-slate-100 text-slate-500",
+  High: "bg-rose-100 text-rose-700",
+  Medium: "bg-amber-100 text-amber-700",
+  Low: "bg-slate-100 text-slate-500",
+};
+
+export const RISK_COLORS = {
+  Low: "bg-emerald-100 text-emerald-700",
+  Medium: "bg-amber-100 text-amber-700",
+  High: "bg-orange-100 text-orange-700",
+  Critical: "bg-rose-100 text-rose-700",
+};
+
+export const ROLE_COLORS = {
+  PI: "bg-indigo-100 text-indigo-700",
+  TeamLeader: "bg-blue-100 text-blue-700",
+  Researcher: "bg-slate-100 text-slate-600",
+  Student: "bg-teal-100 text-teal-700",
+};
+
+export const ACTIVITY_TYPE_COLORS = {
+  Experiment: "bg-violet-100 text-violet-700",
+  Simulation: "bg-blue-100 text-blue-700",
+  Writing: "bg-amber-100 text-amber-700",
+  Reading: "bg-slate-100 text-slate-600",
+  Meeting: "bg-teal-100 text-teal-700",
+  Code: "bg-indigo-100 text-indigo-700",
+  Fabrication: "bg-orange-100 text-orange-700",
+  Discussion: "bg-emerald-100 text-emerald-700",
+  FileUpload: "bg-blue-100 text-blue-700",
+  Other: "bg-slate-100 text-slate-500",
+};
+
+export function formatDate(d) {
+  if (!d) return "—";
+  const date = typeof d === "string" ? new Date(d) : d;
+  if (isNaN(date)) return "—";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
+export function formatDateTime(d) {
+  if (!d) return "—";
+  const date = typeof d === "string" ? new Date(d) : d;
+  if (isNaN(date)) return "—";
+  return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+}
+
+export function relativeTime(d) {
+  if (!d) return "";
+  const date = typeof d === "string" ? new Date(d) : d;
+  const diff = Date.now() - date.getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7) return `${days}d ago`;
+  return formatDate(d);
+}
+
+export function isToday(d) {
+  if (!d) return false;
+  const date = typeof d === "string" ? new Date(d) : d;
+  const now = new Date();
+  return date.toDateString() === now.toDateString();
+}
+
+export function isThisWeek(d) {
+  if (!d) return false;
+  const date = typeof d === "string" ? new Date(d) : d;
+  const now = new Date();
+  const weekAgo = new Date(now);
+  weekAgo.setDate(now.getDate() - 7);
+  return date >= weekAgo && date <= now;
+}
+
+export function daysUntil(d) {
+  if (!d) return null;
+  const date = typeof d === "string" ? new Date(d) : d;
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  const target = new Date(date);
+  target.setHours(0, 0, 0, 0);
+  return Math.round((target - now) / 86400000);
+}
+
+export function weekKey(d = new Date()) {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() - ((date.getDay() + 6) % 7)); // Monday
+  const year = date.getFullYear();
+  const start = new Date(date);
+  start.setMonth(0, 1);
+  const week = Math.ceil(((date - start) / 86400000 + start.getDay() + 1) / 7);
+  return `${year}-W${String(week).padStart(2, "0")}`;
+}
+
+export function monthKey(d = new Date()) {
+  const date = new Date(d);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+export function formatDuration(mins) {
+  if (!mins) return "—";
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  if (h && m) return `${h}h ${m}m`;
+  if (h) return `${h}h`;
+  return `${m}m`;
+}
+
+export function initials(name) {
+  if (!name) return "?";
+  return name.split(" ").map((p) => p[0]).slice(0, 2).join("").toUpperCase();
+}

@@ -1,0 +1,73 @@
+{
+  "name": "AIAnalysis",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "ProjectProgress",
+        "MemberPerformance",
+        "RiskAssessment",
+        "TrendAnalysis",
+        "WeeklyDigest",
+        "Recommendation"
+      ],
+      "default": "ProjectProgress",
+      "title": "Type"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "memberId": {
+      "type": "string",
+      "title": "Member"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content"
+    },
+    "summary": {
+      "type": "string",
+      "title": "Summary"
+    },
+    "confidence": {
+      "type": "number",
+      "default": 0.8,
+      "title": "Confidence"
+    },
+    "period": {
+      "type": "string",
+      "title": "Period"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Archived"
+      ],
+      "default": "Published",
+      "title": "Status"
+    }
+  },
+  "required": [
+    "type",
+    "content",
+    "summary"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

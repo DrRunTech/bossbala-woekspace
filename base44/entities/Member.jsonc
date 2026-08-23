@@ -1,0 +1,74 @@
+{
+  "name": "Member",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "PI",
+        "TeamLeader",
+        "Researcher",
+        "Student"
+      ],
+      "default": "Researcher",
+      "title": "Role"
+    },
+    "email": {
+      "type": "string",
+      "title": "Email"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "OnLeave",
+        "Inactive"
+      ],
+      "default": "Active",
+      "title": "Status"
+    },
+    "avatarUrl": {
+      "type": "string",
+      "title": "Avatar URL"
+    },
+    "joinedDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Joined Date"
+    },
+    "researchFocus": {
+      "type": "string",
+      "title": "Research Focus"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Skills"
+    },
+    "weeklyHoursTarget": {
+      "type": "number",
+      "default": 40,
+      "title": "Weekly Hours Target"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

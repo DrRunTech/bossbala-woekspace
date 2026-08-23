@@ -1,0 +1,51 @@
+{
+  "name": "ProjectMilestone",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "targetDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Target Date"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Planned",
+        "InProgress",
+        "Achieved",
+        "Missed",
+        "Delayed"
+      ],
+      "default": "Planned",
+      "title": "Status"
+    },
+    "completedDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Completed Date"
+    }
+  },
+  "required": [
+    "title",
+    "projectId",
+    "targetDate"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

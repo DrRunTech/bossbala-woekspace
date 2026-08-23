@@ -1,0 +1,87 @@
+{
+  "name": "FileItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Document",
+        "Data",
+        "Code",
+        "Image",
+        "Video",
+        "Presentation",
+        "Spreadsheet",
+        "Other"
+      ],
+      "default": "Other",
+      "title": "Type"
+    },
+    "fileUrl": {
+      "type": "string",
+      "title": "File URL"
+    },
+    "fileSize": {
+      "type": "number",
+      "title": "File Size"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "taskId": {
+      "type": "string",
+      "title": "Task"
+    },
+    "uploadedBy": {
+      "type": "string",
+      "title": "Uploaded By"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "isEvidence": {
+      "type": "boolean",
+      "default": false,
+      "title": "Is Evidence"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "RawData",
+        "ProcessedData",
+        "Draft",
+        "Publication",
+        "Code",
+        "Protocol",
+        "Report",
+        "Other"
+      ],
+      "default": "Other",
+      "title": "Category"
+    }
+  },
+  "required": [
+    "name",
+    "fileUrl"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "name": "Risk",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "default": "Medium",
+      "title": "Level"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Identified",
+        "Monitoring",
+        "Mitigating",
+        "Resolved",
+        "Ignored"
+      ],
+      "default": "Identified",
+      "title": "Status"
+    },
+    "identifiedBy": {
+      "type": "string",
+      "title": "Identified By"
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Due Date"
+    },
+    "mitigation": {
+      "type": "string",
+      "title": "Mitigation"
+    },
+    "resolvedAt": {
+      "type": "string",
+      "format": "date",
+      "title": "Resolved At"
+    },
+    "relatedTaskIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Related Task IDs"
+    }
+  },
+  "required": [
+    "title",
+    "projectId"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

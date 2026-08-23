@@ -1,0 +1,98 @@
+{
+  "name": "Activity",
+  "type": "object",
+  "properties": {
+    "memberId": {
+      "type": "string",
+      "title": "Member"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "taskId": {
+      "type": "string",
+      "title": "Task"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Experiment",
+        "Simulation",
+        "Writing",
+        "Reading",
+        "Meeting",
+        "Code",
+        "Fabrication",
+        "Discussion",
+        "FileUpload",
+        "Other"
+      ],
+      "default": "Other",
+      "title": "Type"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "date": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Date"
+    },
+    "durationMinutes": {
+      "type": "number",
+      "title": "Duration Minutes"
+    },
+    "location": {
+      "type": "string",
+      "title": "Location"
+    },
+    "fileRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "File Refs"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "Manual",
+        "Auto",
+        "Imported"
+      ],
+      "default": "Manual",
+      "title": "Source"
+    },
+    "aiSummary": {
+      "type": "string",
+      "title": "AI Summary"
+    }
+  },
+  "required": [
+    "memberId",
+    "projectId",
+    "title",
+    "date"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

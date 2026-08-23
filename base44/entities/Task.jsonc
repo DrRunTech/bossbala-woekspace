@@ -1,0 +1,114 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "assigneeId": {
+      "type": "string",
+      "title": "Assignee"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Backlog",
+        "InProgress",
+        "InReview",
+        "Done",
+        "Blocked"
+      ],
+      "default": "Backlog",
+      "title": "Status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "P0",
+        "P1",
+        "P2",
+        "P3"
+      ],
+      "default": "P2",
+      "title": "Priority"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Experiment",
+        "Simulation",
+        "Writing",
+        "Reading",
+        "Analysis",
+        "Meeting",
+        "Code",
+        "Fabrication",
+        "Other"
+      ],
+      "default": "Other",
+      "title": "Type"
+    },
+    "dueDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Due Date"
+    },
+    "estimatedHours": {
+      "type": "number",
+      "title": "Estimated Hours"
+    },
+    "actualHours": {
+      "type": "number",
+      "title": "Actual Hours"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Dependencies"
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Evidence Refs"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date",
+      "title": "Completed At"
+    }
+  },
+  "required": [
+    "title",
+    "projectId",
+    "assigneeId"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

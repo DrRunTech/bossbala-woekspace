@@ -1,11 +1,29 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Layout from '@/components/Layout';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
+import Today from '@/pages/Today';
+import Projects from '@/pages/Projects';
+import ProjectDetail from '@/pages/ProjectDetail';
+import People from '@/pages/People';
+import MemberProfile from '@/pages/MemberProfile';
+import Tasks from '@/pages/Tasks';
+import FilesPage from '@/pages/Files';
+import Activities from '@/pages/Activities';
+import AIAnalysisPage from '@/pages/AIAnalysis';
+import Risks from '@/pages/Risks';
+import AskBossAI from '@/pages/AskBossAI';
+import Settings from '@/pages/Settings';
 // Add page imports here
 
 const AuthenticatedApp = () => {
@@ -34,7 +52,26 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      {/* Add your page Route elements here */}
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Today />} />
+          <Route path="/projects" element={<Projects />} />
+          <Route path="/projects/:id" element={<ProjectDetail />} />
+          <Route path="/people" element={<People />} />
+          <Route path="/people/:id" element={<MemberProfile />} />
+          <Route path="/tasks" element={<Tasks />} />
+          <Route path="/files" element={<FilesPage />} />
+          <Route path="/activities" element={<Activities />} />
+          <Route path="/ai-analysis" element={<AIAnalysisPage />} />
+          <Route path="/risks" element={<Risks />} />
+          <Route path="/ask-bossai" element={<AskBossAI />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
+      </Route>
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

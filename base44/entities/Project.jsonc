@@ -1,0 +1,99 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Planning",
+        "Active",
+        "OnHold",
+        "Completed",
+        "Cancelled"
+      ],
+      "default": "Planning",
+      "title": "Status"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Start Date"
+    },
+    "endDate": {
+      "type": "string",
+      "format": "date",
+      "title": "End Date"
+    },
+    "principalInvestigator": {
+      "type": "string",
+      "title": "Principal Investigator"
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Members"
+    },
+    "fundingSource": {
+      "type": "string",
+      "title": "Funding Source"
+    },
+    "budget": {
+      "type": "number",
+      "title": "Budget"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "default": "Medium",
+      "title": "Priority"
+    },
+    "progressPercent": {
+      "type": "number",
+      "default": 0,
+      "title": "Progress Percent"
+    },
+    "riskLevel": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "default": "Low",
+      "title": "Risk Level"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}
