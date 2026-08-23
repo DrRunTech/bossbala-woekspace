@@ -1,17 +1,66 @@
 {
+  "name": "User",
+  "type": "object",
   "properties": {
     "role": {
       "type": "string",
-      "description": "The role of the user in the app",
       "enum": [
-        "admin",
-        "user"
-      ]
+        "PI",
+        "TEAM_LEADER",
+        "RESEARCHER",
+        "ADMIN"
+      ],
+      "default": "RESEARCHER",
+      "title": "Role"
+    },
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "departmentId": {
+      "type": "string",
+      "title": "Department"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "OnLeave",
+        "Inactive"
+      ],
+      "default": "Active",
+      "title": "Status"
+    },
+    "avatarUrl": {
+      "type": "string",
+      "title": "Avatar URL"
+    },
+    "joinedDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Joined Date"
+    },
+    "researchFocus": {
+      "type": "string",
+      "title": "Research Focus"
+    },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Skills"
+    },
+    "weeklyHoursTarget": {
+      "type": "number",
+      "default": 40,
+      "title": "Weekly Hours Target"
     }
   },
-  "required": [
-    "role"
-  ],
-  "name": "User",
-  "type": "object"
+  "required": []
 }

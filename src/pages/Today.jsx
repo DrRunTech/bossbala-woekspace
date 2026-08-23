@@ -49,8 +49,8 @@ export default function Today() {
     })();
   }, []);
 
-  const activeProjects = projects.filter((p) => p.status === "Active");
-  const openTasks = tasks ? tasks.filter((t) => t.status !== "Done") : [];
+  const activeProjects = projects.filter((p) => p.status === "ACTIVE");
+  const openTasks = tasks ? tasks.filter((t) => t.status !== "COMPLETED") : [];
   const todayActivities = activities ? activities.filter((a) => isToday(a.date)) : [];
   const weekMilestones = milestones
     ? milestones.filter((m) => {

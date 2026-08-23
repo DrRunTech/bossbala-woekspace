@@ -2,9 +2,17 @@
   "name": "Activity",
   "type": "object",
   "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
     "memberId": {
       "type": "string",
       "title": "Member"
+    },
+    "userId": {
+      "type": "string",
+      "title": "User"
     },
     "projectId": {
       "type": "string",
@@ -59,6 +67,14 @@
       },
       "default": [],
       "title": "File Refs"
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Evidence Refs"
     },
     "tags": {
       "type": "array",

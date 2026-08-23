@@ -1,0 +1,53 @@
+{
+  "name": "Organization",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "University",
+        "Institute",
+        "Company",
+        "Lab",
+        "Government",
+        "Other"
+      ],
+      "default": "University",
+      "title": "Type"
+    },
+    "domain": {
+      "type": "string",
+      "title": "Domain"
+    },
+    "logoUrl": {
+      "type": "string",
+      "title": "Logo URL"
+    },
+    "country": {
+      "type": "string",
+      "title": "Country"
+    },
+    "settings": {
+      "type": "object",
+      "default": {},
+      "title": "Settings"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

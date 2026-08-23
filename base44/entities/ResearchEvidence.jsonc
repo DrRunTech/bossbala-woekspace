@@ -1,0 +1,87 @@
+{
+  "name": "ResearchEvidence",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "ExperimentData",
+        "SimulationResults",
+        "Paper",
+        "Code",
+        "Report",
+        "Image",
+        "RawData",
+        "Other"
+      ],
+      "default": "Other",
+      "title": "Type"
+    },
+    "activityId": {
+      "type": "string",
+      "title": "Activity"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "taskId": {
+      "type": "string",
+      "title": "Task"
+    },
+    "fileAssetId": {
+      "type": "string",
+      "title": "File Asset"
+    },
+    "uploadedBy": {
+      "type": "string",
+      "title": "Uploaded By"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Collected At"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "metadata": {
+      "type": "object",
+      "default": {},
+      "title": "Metadata"
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false,
+      "title": "Verified"
+    }
+  },
+  "required": [
+    "title",
+    "type",
+    "activityId"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

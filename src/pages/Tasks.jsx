@@ -11,10 +11,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ListChecks, Plus, Calendar } from "lucide-react";
-import { formatDate, daysUntil } from "@/lib/bossai";
+import { formatDate, daysUntil, STATUS_LABELS } from "@/lib/bossai";
 
-const COLUMNS = ["Backlog", "InProgress", "InReview", "Done", "Blocked"];
-const empty = { title: "", description: "", projectId: "", assigneeId: "", status: "Backlog", priority: "P2", type: "Other", dueDate: "", estimatedHours: "" };
+const COLUMNS = ["TODO", "IN_PROGRESS", "BLOCKED", "COMPLETED", "CANCELLED"];
+const empty = { title: "", description: "", projectId: "", assigneeId: "", status: "TODO", priority: "P2", type: "Other", dueDate: "", estimatedHours: "" };
 
 export default function Tasks() {
   const { members, projects, memberName, projectName } = useLookups();
@@ -39,7 +39,7 @@ export default function Tasks() {
 
   const move = async (task, status) => {
     setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status } : t)));
-    const patch = { status, completedAt: status === "Done" ? new Date().toISOString().slice(0, 10) : undefined };
+    const patch = { status, completedAt: status === "COMPLETED" ? new Date().toISOString().slice(0, 10) : undefined };
     await base44.entities.Task.update(task.id, patch);
   };
 
@@ -95,7 +95,7 @@ export default function Tasks() {
             return (
               <div key={col} className="rounded-xl bg-slate-100/70 p-3">
                 <div className="flex items-center justify-between px-1.5 mb-2">
-                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{col.replace(/([A-Z])/g, " $1").trim()}</span>
+                  <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">{STATUS_LABELS[col]}</span>
                   <span className="text-xs text-slate-400">{colTasks.length}</span>
                 </div>
                 <div className="space-y-2">
@@ -114,13 +114,13 @@ export default function Tasks() {
                           <span className="text-xs text-slate-400 truncate max-w-[80px]">{memberName(t.assigneeId)}</span>
                           {t.dueDate && <span className={`text-xs ${d !== null && d < 0 ? "text-rose-600" : "text-slate-400"}`}>{formatDate(t.dueDate)}</span>}
                         </div>
-                        {col !== "Done" && (
+                        {col !== "COMPLETED" && (
                           <select
                             value={t.status}
                             onChange={(e) => move(t, e.target.value)}
                             className="mt-2 w-full text-xs text-slate-500 border border-slate-200 rounded px-1.5 py-1 bg-white"
                           >
-                            {COLUMNS.map((c) => <option key={c} value={c}>{c.replace(/([A-Z])/g, " $1").trim()}</option>)}
+                            {COLUMNS.map((c) => <option key={c} value={c}>{STATUS_LABELS[c]}</option>)}
                           </select>
                         )}
                       </div>

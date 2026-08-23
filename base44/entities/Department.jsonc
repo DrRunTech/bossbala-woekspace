@@ -1,0 +1,40 @@
+{
+  "name": "Department",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "code": {
+      "type": "string",
+      "title": "Code"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "headId": {
+      "type": "string",
+      "title": "Department Head"
+    },
+    "parentDepartmentId": {
+      "type": "string",
+      "title": "Parent Department"
+    }
+  },
+  "required": [
+    "name",
+    "organizationId"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

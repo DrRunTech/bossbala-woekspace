@@ -1,0 +1,54 @@
+{
+  "name": "AuditLog",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "userId": {
+      "type": "string",
+      "title": "User"
+    },
+    "action": {
+      "type": "string",
+      "title": "Action"
+    },
+    "entityType": {
+      "type": "string",
+      "title": "Entity Type"
+    },
+    "entityId": {
+      "type": "string",
+      "title": "Entity ID"
+    },
+    "changes": {
+      "type": "object",
+      "default": {},
+      "title": "Changes"
+    },
+    "metadata": {
+      "type": "object",
+      "default": {},
+      "title": "Metadata"
+    },
+    "ipAddress": {
+      "type": "string",
+      "title": "IP Address"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Timestamp"
+    }
+  },
+  "required": [
+    "action"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

@@ -2,6 +2,14 @@
   "name": "Project",
   "type": "object",
   "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "departmentId": {
+      "type": "string",
+      "title": "Department"
+    },
     "name": {
       "type": "string",
       "title": "Name"
@@ -13,14 +21,25 @@
     "status": {
       "type": "string",
       "enum": [
-        "Planning",
-        "Active",
-        "OnHold",
-        "Completed",
-        "Cancelled"
+        "PLANNED",
+        "ACTIVE",
+        "AT_RISK",
+        "DELAYED",
+        "COMPLETED",
+        "ARCHIVED"
       ],
-      "default": "Planning",
+      "default": "PLANNED",
       "title": "Status"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "default": "Medium",
+      "title": "Priority"
     },
     "startDate": {
       "type": "string",
@@ -31,6 +50,10 @@
       "type": "string",
       "format": "date",
       "title": "End Date"
+    },
+    "leadId": {
+      "type": "string",
+      "title": "Project Lead"
     },
     "principalInvestigator": {
       "type": "string",
@@ -52,24 +75,6 @@
       "type": "number",
       "title": "Budget"
     },
-    "tags": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      },
-      "default": [],
-      "title": "Tags"
-    },
-    "priority": {
-      "type": "string",
-      "enum": [
-        "High",
-        "Medium",
-        "Low"
-      ],
-      "default": "Medium",
-      "title": "Priority"
-    },
     "progressPercent": {
       "type": "number",
       "default": 0,
@@ -85,10 +90,19 @@
       ],
       "default": "Low",
       "title": "Risk Level"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
     }
   },
   "required": [
-    "name"
+    "name",
+    "organizationId"
   ],
   "rls": {
     "read": true,

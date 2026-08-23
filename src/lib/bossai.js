@@ -2,17 +2,18 @@
 
 export const STATUS_COLORS = {
   // Project status
-  Planning: "bg-slate-100 text-slate-600",
-  Active: "bg-blue-100 text-blue-700",
-  OnHold: "bg-amber-100 text-amber-700",
-  Completed: "bg-emerald-100 text-emerald-700",
-  Cancelled: "bg-slate-100 text-slate-400 line-through",
+  PLANNED: "bg-slate-100 text-slate-600",
+  ACTIVE: "bg-blue-100 text-blue-700",
+  AT_RISK: "bg-amber-100 text-amber-700",
+  DELAYED: "bg-orange-100 text-orange-700",
+  COMPLETED: "bg-emerald-100 text-emerald-700",
+  ARCHIVED: "bg-slate-100 text-slate-400 line-through",
   // Task status
-  Backlog: "bg-slate-100 text-slate-600",
-  InProgress: "bg-blue-100 text-blue-700",
-  InReview: "bg-violet-100 text-violet-700",
-  Done: "bg-emerald-100 text-emerald-700",
-  Blocked: "bg-rose-100 text-rose-700",
+  TODO: "bg-slate-100 text-slate-600",
+  IN_PROGRESS: "bg-blue-100 text-blue-700",
+  BLOCKED: "bg-rose-100 text-rose-700",
+  CANCELLED: "bg-slate-100 text-slate-400 line-through",
+  COMPLETED: "bg-emerald-100 text-emerald-700",
   // Member status
   OnLeave: "bg-amber-100 text-amber-700",
   Inactive: "bg-slate-100 text-slate-400",
@@ -27,6 +28,40 @@ export const STATUS_COLORS = {
   Achieved: "bg-emerald-100 text-emerald-700",
   Missed: "bg-rose-100 text-rose-700",
   Delayed: "bg-amber-100 text-amber-700",
+};
+
+export const STATUS_LABELS = {
+  PLANNED: "Planned",
+  ACTIVE: "Active",
+  AT_RISK: "At Risk",
+  DELAYED: "Delayed",
+  COMPLETED: "Completed",
+  ARCHIVED: "Archived",
+  TODO: "To Do",
+  IN_PROGRESS: "In Progress",
+  BLOCKED: "Blocked",
+  CANCELLED: "Cancelled",
+};
+
+export const INSIGHT_TYPE_COLORS = {
+  SUMMARY: "bg-blue-100 text-blue-700",
+  PROGRESS: "bg-emerald-100 text-emerald-700",
+  RISK: "bg-rose-100 text-rose-700",
+  ANOMALY: "bg-orange-100 text-orange-700",
+  TREND: "bg-violet-100 text-violet-700",
+  PREDICTION: "bg-indigo-100 text-indigo-700",
+  RECOMMENDATION: "bg-teal-100 text-teal-700",
+};
+
+export const EVIDENCE_TYPE_COLORS = {
+  ExperimentData: "bg-violet-100 text-violet-700",
+  SimulationResults: "bg-blue-100 text-blue-700",
+  Paper: "bg-emerald-100 text-emerald-700",
+  Code: "bg-indigo-100 text-indigo-700",
+  Report: "bg-amber-100 text-amber-700",
+  Image: "bg-teal-100 text-teal-700",
+  RawData: "bg-slate-100 text-slate-600",
+  Other: "bg-slate-100 text-slate-500",
 };
 
 export const PRIORITY_COLORS = {
@@ -48,6 +83,9 @@ export const RISK_COLORS = {
 
 export const ROLE_COLORS = {
   PI: "bg-indigo-100 text-indigo-700",
+  TEAM_LEADER: "bg-blue-100 text-blue-700",
+  RESEARCHER: "bg-slate-100 text-slate-600",
+  ADMIN: "bg-rose-100 text-rose-700",
   TeamLeader: "bg-blue-100 text-blue-700",
   Researcher: "bg-slate-100 text-slate-600",
   Student: "bg-teal-100 text-teal-700",

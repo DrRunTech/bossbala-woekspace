@@ -1,0 +1,77 @@
+{
+  "name": "AIConversation",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "userId": {
+      "type": "string",
+      "title": "User"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant",
+              "system"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "default": [],
+      "title": "Messages"
+    },
+    "relatedProjectId": {
+      "type": "string",
+      "title": "Related Project"
+    },
+    "relatedInsightIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Related Insight IDs"
+    },
+    "context": {
+      "type": "string",
+      "title": "Context"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Active",
+        "Archived"
+      ],
+      "default": "Active",
+      "title": "Status"
+    }
+  },
+  "required": [
+    "userId"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

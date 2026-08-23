@@ -1,0 +1,121 @@
+{
+  "name": "AIInsight",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "SUMMARY",
+        "PROGRESS",
+        "RISK",
+        "ANOMALY",
+        "TREND",
+        "PREDICTION",
+        "RECOMMENDATION"
+      ],
+      "default": "SUMMARY",
+      "title": "Type"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "memberId": {
+      "type": "string",
+      "title": "Member"
+    },
+    "userId": {
+      "type": "string",
+      "title": "User"
+    },
+    "taskId": {
+      "type": "string",
+      "title": "Task"
+    },
+    "activityId": {
+      "type": "string",
+      "title": "Activity"
+    },
+    "content": {
+      "type": "string",
+      "title": "Content"
+    },
+    "summary": {
+      "type": "string",
+      "title": "Summary"
+    },
+    "confidence": {
+      "type": "number",
+      "default": 0.8,
+      "title": "Confidence"
+    },
+    "evidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Evidence Refs"
+    },
+    "activityRefs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Activity Refs"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High",
+        "Critical"
+      ],
+      "default": "Medium",
+      "title": "Severity"
+    },
+    "period": {
+      "type": "string",
+      "title": "Period"
+    },
+    "model": {
+      "type": "string",
+      "title": "Model"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Published",
+        "Archived"
+      ],
+      "default": "Published",
+      "title": "Status"
+    }
+  },
+  "required": [
+    "type",
+    "content",
+    "summary"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

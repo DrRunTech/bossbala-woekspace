@@ -1,0 +1,105 @@
+{
+  "name": "Decision",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "rationale": {
+      "type": "string",
+      "title": "Rationale"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "decidedBy": {
+      "type": "string",
+      "title": "Decided By"
+    },
+    "decisionType": {
+      "type": "string",
+      "enum": [
+        "Direction",
+        "Resource",
+        "Scope",
+        "Timeline",
+        "Personnel",
+        "Risk",
+        "Other"
+      ],
+      "default": "Direction",
+      "title": "Decision Type"
+    },
+    "impact": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "default": "Medium",
+      "title": "Impact"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Proposed",
+        "Approved",
+        "Rejected",
+        "Implemented",
+        "Superseded"
+      ],
+      "default": "Proposed",
+      "title": "Status"
+    },
+    "relatedInsightIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Related Insight IDs"
+    },
+    "relatedEvidenceIds": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Related Evidence IDs"
+    },
+    "decidedAt": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Decided At"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    }
+  },
+  "required": [
+    "title",
+    "decidedBy"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

@@ -2,6 +2,10 @@
   "name": "Task",
   "type": "object",
   "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
     "title": {
       "type": "string",
       "title": "Title"
@@ -21,13 +25,13 @@
     "status": {
       "type": "string",
       "enum": [
-        "Backlog",
-        "InProgress",
-        "InReview",
-        "Done",
-        "Blocked"
+        "TODO",
+        "IN_PROGRESS",
+        "BLOCKED",
+        "COMPLETED",
+        "CANCELLED"
       ],
-      "default": "Backlog",
+      "default": "TODO",
       "title": "Status"
     },
     "priority": {

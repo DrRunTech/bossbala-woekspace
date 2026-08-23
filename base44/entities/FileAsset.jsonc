@@ -1,0 +1,103 @@
+{
+  "name": "FileAsset",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Document",
+        "Data",
+        "Code",
+        "Image",
+        "Video",
+        "Presentation",
+        "Spreadsheet",
+        "Other"
+      ],
+      "default": "Other",
+      "title": "Type"
+    },
+    "fileUrl": {
+      "type": "string",
+      "title": "File URL"
+    },
+    "fileSize": {
+      "type": "number",
+      "title": "File Size"
+    },
+    "mimeType": {
+      "type": "string",
+      "title": "Mime Type"
+    },
+    "storageRef": {
+      "type": "string",
+      "title": "Storage Reference"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Project"
+    },
+    "taskId": {
+      "type": "string",
+      "title": "Task"
+    },
+    "activityId": {
+      "type": "string",
+      "title": "Activity"
+    },
+    "uploadedBy": {
+      "type": "string",
+      "title": "Uploaded By"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "RawData",
+        "ProcessedData",
+        "Draft",
+        "Publication",
+        "Code",
+        "Protocol",
+        "Report",
+        "Other"
+      ],
+      "default": "Other",
+      "title": "Category"
+    },
+    "isEvidence": {
+      "type": "boolean",
+      "default": false,
+      "title": "Is Evidence"
+    }
+  },
+  "required": [
+    "name",
+    "fileUrl"
+  ],
+  "rls": {
+    "read": true,
+    "create": true,
+    "update": true,
+    "delete": true
+  }
+}

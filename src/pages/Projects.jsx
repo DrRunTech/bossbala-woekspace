@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useLookups } from "@/lib/useLookups";
 import EmptyState, { PageHeader, SkeletonCard } from "@/components/EmptyState";
 import { StatusBadge, RiskBadge, ProgressBar, PriorityBadge } from "@/components/ui/badges";
-import { formatDate } from "@/lib/bossai";
+import { formatDate, STATUS_LABELS } from "@/lib/bossai";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FolderKanban, Plus, Users } from "lucide-react";
 
-const empty = { name: "", description: "", status: "Planning", startDate: "", endDate: "", priority: "Medium", fundingSource: "", budget: "" };
+const empty = { name: "", description: "", status: "PLANNED", startDate: "", endDate: "", priority: "Medium", fundingSource: "", budget: "" };
 
 export default function Projects() {
   const { members, memberName } = useLookups();
@@ -36,7 +36,7 @@ export default function Projects() {
   const progressFor = (pid) => {
     const pt = tasks?.filter((t) => t.projectId === pid) || [];
     if (!pt.length) return 0;
-    return Math.round((pt.filter((t) => t.status === "Done").length / pt.length) * 100);
+    return Math.round((pt.filter((t) => t.status === "COMPLETED").length / pt.length) * 100);
   };
 
   const save = async () => {
@@ -120,7 +120,7 @@ export default function Projects() {
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{["Planning", "Active", "OnHold", "Completed", "Cancelled"].map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{Object.keys(STATUS_LABELS).filter((s) => !["TODO", "IN_PROGRESS", "BLOCKED", "CANCELLED"].includes(s)).map((s) => <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div>

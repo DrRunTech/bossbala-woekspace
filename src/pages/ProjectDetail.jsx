@@ -45,7 +45,7 @@ export default function ProjectDetail() {
   };
   useEffect(() => { load(); }, [id]);
 
-  const progress = tasks.length ? Math.round((tasks.filter((t) => t.status === "Done").length / tasks.length) * 100) : 0;
+  const progress = tasks.length ? Math.round((tasks.filter((t) => t.status === "COMPLETED").length / tasks.length) * 100) : 0;
 
   const addMilestone = async () => {
     if (!msForm.title.trim() || !msForm.targetDate) return;
