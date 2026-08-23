@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.43';
+import * as gateway from '../../shared/aiGateway.ts';
 
 // Historical comparison — objective, evidence-first.
 // Computes deterministic period-over-period metrics (no LLM for the numbers),
@@ -147,7 +148,7 @@ Return JSON only:
     let narration = null;
     if (totalCurrent > 0 || metrics.some((m) => m.snapshot && m.current > 0)) {
       try {
-        narration = await base44.integrations.Core.InvokeLLM({
+        narration = await gateway.analyze(base44, {
           prompt,
           response_json_schema: {
             type: 'object',

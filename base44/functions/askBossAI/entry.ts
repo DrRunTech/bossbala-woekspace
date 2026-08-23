@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.43';
+import * as gateway from '../../shared/aiGateway.ts';
 
 // Ask BossAI — evidence-first natural-language assistant for a research PI.
 // Pipeline: understand question → determine required data → permission check
@@ -171,7 +172,7 @@ Return JSON only with these fields:
 
     let result;
     try {
-      result = await base44.integrations.Core.InvokeLLM({
+      result = await gateway.analyze(base44, {
         prompt,
         response_json_schema: {
           type: 'object',

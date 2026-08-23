@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.43';
+import * as gateway from '../../shared/aiGateway.ts';
 
 // Evidence-first AI analysis generator.
 // Gathers concrete evidence (activities, tasks, files, ResearchEvidence, risks)
@@ -159,7 +160,7 @@ Return JSON only:
 
     let result;
     try {
-      result = await base44.integrations.Core.InvokeLLM({
+      result = await gateway.analyze(base44, {
         prompt,
         response_json_schema: {
           type: 'object',

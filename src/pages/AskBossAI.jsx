@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Send, User, Link2, TrendingUp, AlertTriangle } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
+import AiGatewayStatus from "@/components/AiGatewayStatus";
 
 const SUGGESTED = [
   "What did Zhang San do this week?",
@@ -58,6 +59,7 @@ export default function AskBossAI() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       <PageHeader title="Ask BossAI" subtitle="Evidence-first answers about your research group — every conclusion cites real activities, tasks, files, or evidence." />
+      <AiGatewayStatus variant="banner" />
 
       <div className="flex-1 rounded-xl border border-slate-200 bg-white flex flex-col overflow-hidden">
         <div className="flex-1 overflow-y-auto p-5 space-y-4">

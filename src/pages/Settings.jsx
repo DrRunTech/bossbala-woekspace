@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import AiGatewayStatus from "@/components/AiGatewayStatus";
 import { Settings as SettingsIcon, Building2, Tags, Bell, Brain, Download } from "lucide-react";
 
 export default function Settings() {
@@ -92,6 +93,11 @@ export default function Settings() {
               </Select>
             </div>
           </div>
+        </Card>
+
+        {/* AI Gateway */}
+        <Card className="p-5">
+          <AiGatewayStatus variant="card" />
         </Card>
 
         {/* Notifications */}

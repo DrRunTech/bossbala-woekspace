@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { GitCompare, ArrowUp, ArrowDown, Minus, AlertCircle, Info, Loader2 } from "lucide-react";
+import AiGatewayStatus from "@/components/AiGatewayStatus";
 
 const TYPES = [
   { value: "today_vs_yesterday", label: "Today vs Yesterday" },
@@ -46,6 +47,7 @@ export default function Comparison() {
   return (
     <div className="space-y-5">
       <PageHeader title="Historical Comparison" subtitle="Objective period-over-period metrics across the research group — the AI narrates changes and explains the evidence's limitations." />
+      <AiGatewayStatus variant="banner" />
 
       <div className="bg-white rounded-xl border border-slate-200 p-5">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
