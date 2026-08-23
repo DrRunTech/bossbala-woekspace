@@ -9,11 +9,15 @@
     "type": {
       "type": "string",
       "enum": [
-        "SUMMARY",
         "PROGRESS",
+        "MEMBER_ACTIVITY",
+        "WEEKLY_SUMMARY",
+        "MONTHLY_SUMMARY",
+        "TREND",
         "RISK",
         "ANOMALY",
-        "TREND",
+        "ACTIVITY_COMPARISON",
+        "SUMMARY",
         "PREDICTION",
         "RECOMMENDATION"
       ],
@@ -48,9 +52,13 @@
       "type": "string",
       "title": "Summary"
     },
+    "evidence": {
+      "type": "string",
+      "title": "Evidence"
+    },
     "confidence": {
       "type": "number",
-      "default": 0.8,
+      "default": 0,
       "title": "Confidence"
     },
     "evidenceRefs": {
@@ -69,6 +77,22 @@
       "default": [],
       "title": "Activity Refs"
     },
+    "risks": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "title": "Risks"
+    },
+    "recommendations": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      },
+      "default": [],
+      "title": "Recommendations"
+    },
     "severity": {
       "type": "string",
       "enum": [
@@ -77,7 +101,7 @@
         "High",
         "Critical"
       ],
-      "default": "Medium",
+      "default": "Low",
       "title": "Severity"
     },
     "period": {
@@ -109,7 +133,6 @@
   },
   "required": [
     "type",
-    "content",
     "summary"
   ],
   "rls": {
