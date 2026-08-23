@@ -125,7 +125,7 @@ Activity by project — last week: ${Object.entries(byProjLast).map(([k, v]) => 
     const totalEvidence = acts.length + tks.length + fls.length + evs.length + rks.length;
 
     // Step 6 + 7 + 8: analyze and answer — evidence-first, structured, cited.
-    const prompt = `You are BossAI, an analyst assistant for a university research group's PI. You answer the PI's question using ONLY the evidence provided.
+    const prompt = `You are BossBala, an analyst assistant for a university research group's PI. You answer the PI's question using ONLY the evidence provided.
 
 RULES (evidence-first):
 1. Identify the underlying evidence BEFORE forming any conclusion.

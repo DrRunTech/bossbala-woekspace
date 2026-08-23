@@ -1,4 +1,4 @@
-// Shared helpers and label/color maps for BossAI Research
+// Shared helpers and label/color maps for BossBala Research
 
 export const STATUS_COLORS = {
   // Project status

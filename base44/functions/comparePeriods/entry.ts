@@ -126,7 +126,7 @@ export default async function(req) {
 
     const totalCurrent = metrics.filter((m) => !m.snapshot).reduce((s, m) => s + (m.current || 0), 0);
 
-    const prompt = `You are BossAI, an evidence-first analyst for a university research team. You are producing a historical comparison for ${scopeLabel}.
+    const prompt = `You are BossBala, an evidence-first analyst for a university research team. You are producing a historical comparison for ${scopeLabel}.
 PRINCIPLES:
 1. Use ONLY the objective metric numbers provided. Do NOT invent numbers.
 2. Describe changes neutrally and objectively.

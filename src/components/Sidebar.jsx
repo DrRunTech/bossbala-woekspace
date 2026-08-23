@@ -16,7 +16,7 @@ const NAV = [
   { to: "/activities", label: "Activities", icon: Activity },
   { to: "/ai-analysis", label: "AI Analysis", icon: Sparkles },
   { to: "/risks", label: "Risks", icon: ShieldAlert },
-  { to: "/ask-bossai", label: "Ask BossAI", icon: MessageSquareText },
+  { to: "/ask-bossai", label: "Ask BossBala", icon: MessageSquareText },
   { to: "/comparison", label: "Comparison", icon: GitCompare },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
@@ -45,7 +45,7 @@ export default function Sidebar() {
           </div>
           {!collapsed && (
             <div className="leading-tight">
-              <div className="text-sm font-semibold text-slate-900">BossAI</div>
+              <div className="text-sm font-semibold text-slate-900">BossBala</div>
               <div className="text-[11px] text-slate-400 -mt-0.5">Research</div>
             </div>
           )}

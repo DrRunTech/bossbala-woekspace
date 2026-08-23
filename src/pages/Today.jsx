@@ -151,12 +151,12 @@ export default function Today() {
         ) : null}
       />
 
-      {/* Ask BossAI — prominent */}
+      {/* Ask BossBala — prominent */}
       <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5">
         <div className="flex items-center gap-2 mb-3">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-white"><Sparkles className="h-4 w-4" /></div>
           <div>
-            <h2 className="text-sm font-semibold text-slate-800">Ask BossAI</h2>
+            <h2 className="text-sm font-semibold text-slate-800">Ask BossBala</h2>
             <p className="text-xs text-slate-500">Ask anything about your research group — answered from live data.</p>
           </div>
         </div>
@@ -361,7 +361,7 @@ export default function Today() {
         <Button asChild><Link to="/activities"><ActivityIcon className="h-4 w-4 mr-1.5" /> Log Activity</Link></Button>
         <Button variant="outline" asChild><Link to="/tasks"><ListChecks className="h-4 w-4 mr-1.5" /> Create Task</Link></Button>
         <Button variant="outline" asChild><Link to="/files"><FileCheck2 className="h-4 w-4 mr-1.5" /> Upload File</Link></Button>
-        <Button variant="outline" asChild><Link to="/ask-bossai"><Sparkles className="h-4 w-4 mr-1.5" /> Open BossAI</Link></Button>
+        <Button variant="outline" asChild><Link to="/ask-bossai"><Sparkles className="h-4 w-4 mr-1.5" /> Open BossBala</Link></Button>
       </div>
     </div>
   );

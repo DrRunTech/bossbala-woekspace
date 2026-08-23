@@ -58,7 +58,7 @@ export default function AskBossAI() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <PageHeader title="Ask BossAI" subtitle="Evidence-first answers about your research group — every conclusion cites real activities, tasks, files, or evidence." />
+      <PageHeader title="Ask BossBala" subtitle="Evidence-first answers about your research group — every conclusion cites real activities, tasks, files, or evidence." />
       <AiGatewayStatus variant="banner" />
 
       <div className="flex-1 rounded-xl border border-slate-200 bg-white flex flex-col overflow-hidden">
