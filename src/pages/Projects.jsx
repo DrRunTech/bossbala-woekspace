@@ -43,8 +43,10 @@ export default function Projects() {
     if (!form.name.trim()) return;
     setSaving(true);
     try {
+      const me = await base44.auth.me();
       await base44.entities.Project.create({
         ...form,
+        organizationId: me.organizationId,
         budget: form.budget ? Number(form.budget) : undefined,
         members: [],
         tags: [],

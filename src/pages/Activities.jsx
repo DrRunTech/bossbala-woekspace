@@ -30,8 +30,10 @@ export default function Activities() {
     if (!form.title.trim() || !form.memberId || !form.projectId) return;
     setSaving(true);
     try {
+      const me = await base44.auth.me();
       await base44.entities.Activity.create({
         ...form,
+        organizationId: me.organizationId,
         date: new Date(form.date).toISOString(),
         durationMinutes: form.durationMinutes ? Number(form.durationMinutes) : undefined,
         tags: [], fileRefs: [],

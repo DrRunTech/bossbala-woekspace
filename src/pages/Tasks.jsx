@@ -47,7 +47,8 @@ export default function Tasks() {
     if (!form.title.trim() || !form.projectId || !form.assigneeId) return;
     setSaving(true);
     try {
-      await base44.entities.Task.create({ ...form, estimatedHours: form.estimatedHours ? Number(form.estimatedHours) : undefined, tags: [], dependencies: [], evidenceRefs: [] });
+      const me = await base44.auth.me();
+      await base44.entities.Task.create({ ...form, organizationId: me.organizationId, estimatedHours: form.estimatedHours ? Number(form.estimatedHours) : undefined, tags: [], dependencies: [], evidenceRefs: [] });
       setForm(empty); setOpen(false); await load();
     } finally { setSaving(false); }
   };

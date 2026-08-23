@@ -2,7 +2,7 @@
   "name": "User",
   "type": "object",
   "properties": {
-    "role": {
+    "appRole": {
       "type": "string",
       "enum": [
         "PI",
@@ -11,7 +11,7 @@
         "ADMIN"
       ],
       "default": "RESEARCHER",
-      "title": "Role"
+      "title": "Application Role"
     },
     "organizationId": {
       "type": "string",
