@@ -6,24 +6,26 @@ import {
   Sparkles, ShieldAlert, MessageSquareText, GitCompare, Settings, LogOut, ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n";
 
 const NAV = [
-  { to: "/", label: "Today", icon: LayoutDashboard, end: true },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/people", label: "People", icon: Users },
-  { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/files", label: "Files", icon: Files },
-  { to: "/activities", label: "Activities", icon: Activity },
-  { to: "/ai-analysis", label: "AI Analysis", icon: Sparkles },
-  { to: "/risks", label: "Risks", icon: ShieldAlert },
+  { to: "/", labelKey: "nav.today", icon: LayoutDashboard, end: true },
+  { to: "/projects", labelKey: "nav.projects", icon: FolderKanban },
+  { to: "/people", labelKey: "nav.people", icon: Users },
+  { to: "/tasks", labelKey: "nav.tasks", icon: ListChecks },
+  { to: "/files", labelKey: "nav.files", icon: Files },
+  { to: "/activities", labelKey: "nav.activities", icon: Activity },
+  { to: "/ai-analysis", labelKey: "nav.aiAnalysis", icon: Sparkles },
+  { to: "/risks", labelKey: "nav.risks", icon: ShieldAlert },
   { to: "/ask-bossai", label: "Ask BossBala", icon: MessageSquareText },
-  { to: "/comparison", label: "Comparison", icon: GitCompare },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/comparison", labelKey: "nav.comparison", icon: GitCompare },
+  { to: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
 
 export default function Sidebar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = () => {
@@ -46,7 +48,7 @@ export default function Sidebar() {
           {!collapsed && (
             <div className="leading-tight">
               <div className="text-sm font-semibold text-slate-900">BossBala</div>
-              <div className="text-[11px] text-slate-400 -mt-0.5">Research</div>
+              <div className="text-[11px] text-slate-400 -mt-0.5">{t("brand.research")}</div>
             </div>
           )}
         </div>
@@ -74,10 +76,10 @@ export default function Sidebar() {
                 collapsed && "justify-center px-0"
               )
             }
-            title={collapsed ? item.label : undefined}
+            title={collapsed ? (item.label || t(item.labelKey)) : undefined}
           >
             <item.icon className="h-4 w-4 shrink-0" strokeWidth={1.75} />
-            {!collapsed && <span>{item.label}</span>}
+            {!collapsed && <span>{item.label || t(item.labelKey)}</span>}
           </NavLink>
         ))}
       </nav>

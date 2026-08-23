@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { PageHeader, SkeletonCard } from "@/components/EmptyState";
 import { StatusBadge, RiskBadge, ProgressBar, Avatar, PriorityBadge } from "@/components/ui/badges";
 import { isToday, isThisWeek, relativeTime, formatDate, daysUntil, formatDuration, ACTIVITY_TYPE_COLORS } from "@/lib/bossai";
+import { useLanguage } from "@/lib/i18n";
 import { Sparkles, Send, AlertTriangle, Clock, FolderKanban, ListChecks, Activity as ActivityIcon, Building2, FileCheck2, Users, ArrowRight, TrendingDown, ChevronRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -20,12 +21,7 @@ const INSIGHT_TYPE_LABELS = {
   TREND: "Trend", PREDICTION: "Prediction", RECOMMENDATION: "Recommendation",
 };
 
-const ASK_SUGGESTIONS = [
-  "What happened today?",
-  "What needs my attention?",
-  "What's delayed?",
-  "Summarize this week's research",
-];
+const ASK_SUGGESTION_KEYS = ["today.ask.sug1", "today.ask.sug2", "today.ask.sug3", "today.ask.sug4"];
 
 function StatCard({ icon: Icon, label, value, to, accent, hint }) {
   return (
@@ -41,6 +37,7 @@ function StatCard({ icon: Icon, label, value, to, accent, hint }) {
 }
 
 function SectionCard({ title, icon: Icon, to, children, action }) {
+  const { t } = useLanguage();
   return (
     <div className="rounded-xl border border-slate-200 bg-white">
       <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
@@ -50,7 +47,7 @@ function SectionCard({ title, icon: Icon, to, children, action }) {
         </h2>
         {to ? (
           <Link to={to} className="text-xs text-blue-700 hover:underline flex items-center gap-1">
-            {action || "View all"} <ArrowRight className="h-3 w-3" />
+            {action || t("today.action.viewAll")} <ArrowRight className="h-3 w-3" />
           </Link>
         ) : null}
       </div>
@@ -63,6 +60,8 @@ export default function Today() {
   const { user } = useAuth();
   const { members, projects, memberName, projectName, memberById } = useLookups();
   const navigate = useNavigate();
+  const { t } = useLanguage();
+  const askSuggestions = ASK_SUGGESTION_KEYS.map((k) => t(k));
   const [tasks, setTasks] = useState(null);
   const [activities, setActivities] = useState(null);
   const [insights, setInsights] = useState(null);
@@ -113,9 +112,9 @@ export default function Today() {
 
   const greeting = (() => {
     const h = new Date().getHours();
-    if (h < 12) return "Good morning";
-    if (h < 18) return "Good afternoon";
-    return "Good evening";
+    if (h < 12) return t("greeting.morning");
+    if (h < 18) return t("greeting.afternoon");
+    return t("greeting.evening");
   })();
 
   const loading = !derived || !insights || !files;
@@ -130,11 +129,11 @@ export default function Today() {
   // Attention items: actionable signals for the PI
   const attention = [];
   if (derived) {
-    derived.delayed.forEach((p) => attention.push({ key: `d-${p.id}`, kind: "delayed", label: p.name, sub: "Delayed project", to: `/projects/${p.id}`, tone: "rose" }));
-    derived.atRisk.forEach((p) => attention.push({ key: `r-${p.id}`, kind: "risk", label: p.name, sub: `At risk · ${p.riskLevel || "—"} risk`, to: `/projects/${p.id}`, tone: "orange" }));
-    derived.overdueTasks.slice(0, 4).forEach((t) => attention.push({ key: `o-${t.id}`, kind: "overdue", label: t.title, sub: `${projectName(t.projectId)} · ${Math.abs(daysUntil(t.dueDate))}d overdue`, to: "/tasks", tone: "amber" }));
+    derived.delayed.forEach((p) => attention.push({ key: `d-${p.id}`, kind: "delayed", label: p.name, sub: t("today.delayedProject"), to: `/projects/${p.id}`, tone: "rose" }));
+    derived.atRisk.forEach((p) => attention.push({ key: `r-${p.id}`, kind: "risk", label: p.name, sub: `${t("today.atRisk")} · ${p.riskLevel || "—"} ${t("today.riskUnit")}`, to: `/projects/${p.id}`, tone: "orange" }));
+    derived.overdueTasks.slice(0, 4).forEach((tk) => attention.push({ key: `o-${tk.id}`, kind: "overdue", label: tk.title, sub: `${projectName(tk.projectId)} · ${Math.abs(daysUntil(tk.dueDate))}${t("today.daysOverdue")}`, to: "/tasks", tone: "amber" }));
   }
-  (insights || []).filter((i) => i.severity === "High" || i.severity === "Critical").slice(0, 3).forEach((i) => attention.push({ key: `i-${i.id}`, kind: "insight", label: i.summary, sub: `AI insight · ${i.severity}`, to: "/ai-analysis", tone: "violet" }));
+  (insights || []).filter((i) => i.severity === "High" || i.severity === "Critical").slice(0, 3).forEach((i) => attention.push({ key: `i-${i.id}`, kind: "insight", label: i.summary, sub: `${t("today.aiInsight")} · ${i.severity}`, to: "/ai-analysis", tone: "violet" }));
 
   return (
     <div>
@@ -157,20 +156,20 @@ export default function Today() {
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-700 text-white"><Sparkles className="h-4 w-4" /></div>
           <div>
             <h2 className="text-sm font-semibold text-slate-800">Ask BossBala</h2>
-            <p className="text-xs text-slate-500">Ask anything about your research group — answered from live data.</p>
+            <p className="text-xs text-slate-500">{t("today.ask.subtitle")}</p>
           </div>
         </div>
         <form onSubmit={(e) => { e.preventDefault(); submitAsk(); }} className="flex items-center gap-2">
           <input
             value={ask}
             onChange={(e) => setAsk(e.target.value)}
-            placeholder="e.g. What needs my attention this week?"
+            placeholder={t("today.ask.placeholder")}
             className="flex-1 h-11 rounded-lg border border-slate-200 bg-white px-4 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/40"
           />
           <Button type="submit" disabled={!ask.trim()} className="h-11"><Send className="h-4 w-4" /></Button>
         </form>
         <div className="flex flex-wrap gap-2 mt-3">
-          {ASK_SUGGESTIONS.map((s) => (
+          {askSuggestions.map((s) => (
             <button key={s} onClick={() => submitAsk(s)} className="text-xs text-slate-600 bg-white hover:bg-blue-700 hover:text-white border border-slate-200 rounded-full px-3 py-1.5 transition-colors">{s}</button>
           ))}
         </div>
@@ -178,19 +177,19 @@ export default function Today() {
 
       {/* Stat row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-        <StatCard icon={FolderKanban} label="Active Projects" value={derived ? derived.activeProjects.length : "—"} to="/projects" accent="bg-blue-50 text-blue-700" />
-        <StatCard icon={AlertTriangle} label="At-Risk" value={derived ? derived.atRisk.length : "—"} to="/projects" accent="bg-orange-50 text-orange-700" hint="Needs attention" />
-        <StatCard icon={TrendingDown} label="Delayed" value={derived ? derived.delayed.length : "—"} to="/projects" accent="bg-rose-50 text-rose-700" />
-        <StatCard icon={ActivityIcon} label="Activity Today" value={derived ? derived.todayActivities.length : "—"} to="/activities" accent="bg-emerald-50 text-emerald-700" />
+        <StatCard icon={FolderKanban} label={t("today.stat.activeProjects")} value={derived ? derived.activeProjects.length : "—"} to="/projects" accent="bg-blue-50 text-blue-700" />
+        <StatCard icon={AlertTriangle} label={t("today.stat.atRisk")} value={derived ? derived.atRisk.length : "—"} to="/projects" accent="bg-orange-50 text-orange-700" hint={t("today.stat.needsAttention")} />
+        <StatCard icon={TrendingDown} label={t("today.stat.delayed")} value={derived ? derived.delayed.length : "—"} to="/projects" accent="bg-rose-50 text-rose-700" />
+        <StatCard icon={ActivityIcon} label={t("today.stat.activityToday")} value={derived ? derived.todayActivities.length : "—"} to="/activities" accent="bg-emerald-50 text-emerald-700" />
       </div>
 
       {/* Needs attention */}
       <div className="mt-8">
-        <SectionCard title="Needs Your Attention" icon={Zap}>
+        <SectionCard title={t("today.section.needsAttention")} icon={Zap}>
           {loading ? (
             <div className="p-4 space-y-2"><SkeletonCard /><SkeletonCard /></div>
           ) : attention.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-slate-400">Nothing critical right now. Everything looks on track.</div>
+            <div className="px-5 py-10 text-center text-sm text-slate-400">{t("today.empty.needsAttention")}</div>
           ) : (
             <div className="divide-y divide-slate-50">
               {attention.slice(0, 8).map((a) => (
@@ -217,11 +216,11 @@ export default function Today() {
       {/* Progressing + today's activities */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
         <div className="lg:col-span-2">
-          <SectionCard title="Project Progress" icon={FolderKanban} to="/projects" action="All projects">
+          <SectionCard title={t("today.section.projectProgress")} icon={FolderKanban} to="/projects" action={t("today.action.allProjects")}>
             {loading ? (
               <div className="p-4 space-y-3"><SkeletonCard /><SkeletonCard /><SkeletonCard /></div>
             ) : derived.activeProjects.length === 0 ? (
-              <div className="px-5 py-10 text-center text-sm text-slate-400">No active projects.</div>
+              <div className="px-5 py-10 text-center text-sm text-slate-400">{t("today.empty.activeProjects")}</div>
             ) : (
               <div className="divide-y divide-slate-50">
                 {derived.activeProjects.slice(0, 6).map((p) => {
@@ -238,7 +237,7 @@ export default function Today() {
                         </div>
                         <div className="text-right shrink-0">
                           <div className="text-sm font-semibold text-slate-800">{prog}%</div>
-                          <div className="text-xs text-slate-400">{derived ? (tasks.filter((t) => t.projectId === p.id && t.status !== "COMPLETED" && t.status !== "CANCELLED").length) : 0} open tasks</div>
+                          <div className="text-xs text-slate-400">{derived ? (tasks.filter((tk) => tk.projectId === p.id && tk.status !== "COMPLETED" && tk.status !== "CANCELLED").length) : 0} {t("today.openTasks")}</div>
                         </div>
                       </div>
                       <div className="mt-3"><ProgressBar value={prog} /></div>
@@ -250,11 +249,11 @@ export default function Today() {
           </SectionCard>
         </div>
 
-        <SectionCard title="Today's Research" icon={ActivityIcon} to="/activities" action="All activity">
+        <SectionCard title={t("today.section.todaysResearch")} icon={ActivityIcon} to="/activities" action={t("today.action.allActivity")}>
           {loading ? (
             <div className="p-4 space-y-2"><SkeletonCard /><SkeletonCard /></div>
           ) : derived.todayActivities.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-slate-400">No activities logged today yet.</div>
+            <div className="px-5 py-10 text-center text-sm text-slate-400">{t("today.empty.noActivityToday")}</div>
           ) : (
             <div className="divide-y divide-slate-50">
               {derived.todayActivities.slice(0, 6).map((a) => {
@@ -280,11 +279,11 @@ export default function Today() {
 
       {/* Member activity + recent evidence */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
-        <SectionCard title="Member Activity (This Week)" icon={Users} to="/people" action="People">
+        <SectionCard title={t("today.section.memberActivity")} icon={Users} to="/people" action={t("today.action.people")}>
           {loading ? (
             <div className="p-4 space-y-2"><SkeletonCard /><SkeletonCard /></div>
           ) : derived.memberStats.length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-slate-400">No activity this week.</div>
+            <div className="px-5 py-10 text-center text-sm text-slate-400">{t("today.empty.noActivityWeek")}</div>
           ) : (
             <div className="divide-y divide-slate-50">
               {derived.memberStats.map((s) => (
@@ -292,9 +291,9 @@ export default function Today() {
                   <Avatar name={s.member.name} src={s.member.avatarUrl} size={32} />
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium text-slate-800 truncate">{s.member.name}</div>
-                    <div className="text-xs text-slate-400">{s.last ? `last ${relativeTime(s.last)}` : "—"}</div>
+                    <div className="text-xs text-slate-400">{s.last ? `${t("today.lastPrefix")} ${relativeTime(s.last)}` : "—"}</div>
                   </div>
-                  <span className="text-xs font-semibold text-slate-600 bg-slate-100 rounded-full px-2.5 py-1">{s.count} act.</span>
+                  <span className="text-xs font-semibold text-slate-600 bg-slate-100 rounded-full px-2.5 py-1">{s.count} {t("today.actUnit")}</span>
                 </div>
               ))}
             </div>
@@ -302,11 +301,11 @@ export default function Today() {
         </SectionCard>
 
         <div className="lg:col-span-2">
-          <SectionCard title="Recent Evidence & Files" icon={FileCheck2} to="/files" action="All files">
+          <SectionCard title={t("today.section.recentEvidence")} icon={FileCheck2} to="/files" action={t("today.action.allFiles")}>
             {loading ? (
               <div className="p-4 space-y-2"><SkeletonCard /><SkeletonCard /></div>
             ) : (files || []).length === 0 ? (
-              <div className="px-5 py-10 text-center text-sm text-slate-400">No files uploaded yet.</div>
+              <div className="px-5 py-10 text-center text-sm text-slate-400">{t("today.empty.noFiles")}</div>
             ) : (
               <div className="divide-y divide-slate-50">
                 {(files || []).slice(0, 5).map((f) => (
@@ -317,7 +316,7 @@ export default function Today() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm text-slate-800 truncate">{f.name}</span>
-                        {f.isEvidence && <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 rounded-full px-1.5 py-0.5">Evidence</span>}
+                        {f.isEvidence && <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 rounded-full px-1.5 py-0.5">{t("today.evidence")}</span>}
                       </div>
                       <div className="text-xs text-slate-400">{f.category || f.type} · {projectName(f.projectId)} · {f.created_date ? relativeTime(f.created_date) : ""}</div>
                     </div>
@@ -331,11 +330,11 @@ export default function Today() {
 
       {/* AI insights */}
       <div className="mt-6">
-        <SectionCard title="AI-Generated Insights" icon={Sparkles} to="/ai-analysis" action="AI Analysis">
+        <SectionCard title={t("today.section.aiInsights")} icon={Sparkles} to="/ai-analysis" action={t("today.action.aiAnalysis")}>
           {loading ? (
             <div className="p-4 space-y-2"><SkeletonCard /><SkeletonCard /></div>
           ) : (insights || []).length === 0 ? (
-            <div className="px-5 py-10 text-center text-sm text-slate-400">No AI insights generated yet.</div>
+            <div className="px-5 py-10 text-center text-sm text-slate-400">{t("today.empty.noInsights")}</div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-slate-100">
               {(insights || []).slice(0, 4).map((i) => (
@@ -358,10 +357,10 @@ export default function Today() {
 
       {/* Quick actions */}
       <div className="flex flex-wrap gap-3 mt-6">
-        <Button asChild><Link to="/activities"><ActivityIcon className="h-4 w-4 mr-1.5" /> Log Activity</Link></Button>
-        <Button variant="outline" asChild><Link to="/tasks"><ListChecks className="h-4 w-4 mr-1.5" /> Create Task</Link></Button>
-        <Button variant="outline" asChild><Link to="/files"><FileCheck2 className="h-4 w-4 mr-1.5" /> Upload File</Link></Button>
-        <Button variant="outline" asChild><Link to="/ask-bossai"><Sparkles className="h-4 w-4 mr-1.5" /> Open BossBala</Link></Button>
+        <Button asChild><Link to="/activities"><ActivityIcon className="h-4 w-4 mr-1.5" /> {t("today.action.logActivity")}</Link></Button>
+        <Button variant="outline" asChild><Link to="/tasks"><ListChecks className="h-4 w-4 mr-1.5" /> {t("today.action.createTask")}</Link></Button>
+        <Button variant="outline" asChild><Link to="/files"><FileCheck2 className="h-4 w-4 mr-1.5" /> {t("today.action.uploadFile")}</Link></Button>
+        <Button variant="outline" asChild><Link to="/ask-bossai"><Sparkles className="h-4 w-4 mr-1.5" /> {t("today.action.openBossBala")}</Link></Button>
       </div>
     </div>
   );
