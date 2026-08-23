@@ -23,6 +23,7 @@ import Activities from '@/pages/Activities';
 import AIAnalysisPage from '@/pages/AIAnalysis';
 import Risks from '@/pages/Risks';
 import AskBossAI from '@/pages/AskBossAI';
+import Comparison from '@/pages/Comparison';
 import Settings from '@/pages/Settings';
 // Add page imports here
 
@@ -69,6 +70,7 @@ const AuthenticatedApp = () => {
           <Route path="/ai-analysis" element={<AIAnalysisPage />} />
           <Route path="/risks" element={<Risks />} />
           <Route path="/ask-bossai" element={<AskBossAI />} />
+          <Route path="/comparison" element={<Comparison />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>

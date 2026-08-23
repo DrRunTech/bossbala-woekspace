@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import {
   LayoutDashboard, FolderKanban, Users, ListChecks, Files, Activity,
-  Sparkles, ShieldAlert, MessageSquareText, Settings, LogOut, ChevronLeft,
+  Sparkles, ShieldAlert, MessageSquareText, GitCompare, Settings, LogOut, ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +17,7 @@ const NAV = [
   { to: "/ai-analysis", label: "AI Analysis", icon: Sparkles },
   { to: "/risks", label: "Risks", icon: ShieldAlert },
   { to: "/ask-bossai", label: "Ask BossAI", icon: MessageSquareText },
+  { to: "/comparison", label: "Comparison", icon: GitCompare },
   { to: "/settings", label: "Settings", icon: Settings },
 ];
 
