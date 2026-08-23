@@ -25,18 +25,20 @@
     "type": {
       "type": "string",
       "enum": [
-        "Experiment",
-        "Simulation",
-        "Writing",
-        "Reading",
-        "Meeting",
-        "Code",
-        "Fabrication",
-        "Discussion",
-        "FileUpload",
-        "Other"
+        "FILE_UPLOAD",
+        "FILE_UPDATE",
+        "TASK_CREATED",
+        "TASK_UPDATED",
+        "TASK_COMPLETED",
+        "EXPERIMENT",
+        "MEETING",
+        "CODE_COMMIT",
+        "DATA_GENERATED",
+        "REPORT_CREATED",
+        "MANUAL_NOTE",
+        "OTHER"
       ],
-      "default": "Other",
+      "default": "OTHER",
       "title": "Type"
     },
     "title": {
@@ -91,7 +93,7 @@
         "Auto",
         "Imported"
       ],
-      "default": "Manual",
+      "default": "Auto",
       "title": "Source"
     },
     "aiSummary": {
@@ -100,7 +102,6 @@
     }
   },
   "required": [
-    "memberId",
     "projectId",
     "title",
     "date"
@@ -132,6 +133,9 @@
                 },
                 {
                   "data.memberId": "{{user.id}}"
+                },
+                {
+                  "data.userId": "{{user.id}}"
                 },
                 {
                   "created_by_id": "{{user.id}}"
@@ -185,6 +189,9 @@
                 },
                 {
                   "data.memberId": "{{user.id}}"
+                },
+                {
+                  "data.userId": "{{user.id}}"
                 },
                 {
                   "created_by_id": "{{user.id}}"
