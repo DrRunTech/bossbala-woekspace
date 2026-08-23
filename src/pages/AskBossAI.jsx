@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Send, User } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { formatDate } from "@/lib/bossai";
+import { useSearchParams } from "react-router-dom";
 
 const SUGGESTED = [
   "What's the progress across all active projects?",
@@ -77,6 +78,16 @@ QUESTION: ${q}`;
       setLoading(false);
     }
   };
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q) {
+      ask(q);
+      setSearchParams({}, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
