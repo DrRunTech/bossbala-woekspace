@@ -48,8 +48,8 @@ export function getConfig() {
     provider,
     baseUrl: (secrets.get("LOCAL_AI_GATEWAY_URL") || "").replace(/\/$/, ""),
     hasKey: !!secrets.get("LOCAL_AI_GATEWAY_API_KEY"),
-    chatModel: secrets.get("CHAT_MODEL") || "qwen2.5:7b",
-    analysisModel: secrets.get("ANALYSIS_MODEL") || secrets.get("CHAT_MODEL") || "qwen2.5:7b",
+    chatModel: secrets.get("CHAT_MODEL") || "qwen3:8b",
+    analysisModel: secrets.get("ANALYSIS_MODEL") || secrets.get("CHAT_MODEL") || "qwen3:8b",
     reasoningModel: secrets.get("REASONING_MODEL") || "deepseek-r1:8b",
     embeddingModel: secrets.get("EMBEDDING_MODEL") || "nomic-embed-text",
   };
