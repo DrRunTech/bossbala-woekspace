@@ -69,9 +69,87 @@
     "projectId"
   ],
   "rls": {
-    "read": true,
-    "create": true,
-    "update": true,
-    "delete": true
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "ADMIN"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "PI"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "TEAM_LEADER"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "RESEARCHER"
+          }
+        }
+      ]
+    },
+    "read": null,
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "ADMIN"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "PI"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "TEAM_LEADER"
+          }
+        },
+        {
+          "data.identifiedBy": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "ADMIN"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "PI"
+          }
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    }
   }
 }
