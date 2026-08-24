@@ -128,6 +128,16 @@ async function rawRequest(cfg, method, path, body, { idempotent = false } = {}) 
   throw enriched;
 }
 
+const CLOUD_MODELS = new Set([
+  "automatic", "gpt_5_mini", "gemini_3_flash", "gpt_5_4", "gpt_5_6_sol", "gpt_5_6_luna",
+  "gemini_3_1_pro", "claude_sonnet_4_6", "claude_opus_4_6", "claude_opus_4_7", "claude_opus_4_8", "claude-sonnet-5",
+]);
+// Local (Ollama) model names like "qwen2.5:7b" are invalid for the CLOUD
+// InvokeLLM path and cause it to throw. Map any non-cloud model to "automatic".
+function cloudModel(name) {
+  return typeof name === "string" && CLOUD_MODELS.has(name) ? name : "automatic";
+}
+
 function parseJsonContent(value) {
   if (value == null) return null;
   if (typeof value === "object") return value;
@@ -245,7 +255,7 @@ export async function chat(base44, { messages, model } = {}) {
   const cfg = getConfig();
   if (cfg.provider === "CLOUD") {
     const prompt = (messages || []).map((m) => `${m.role || "user"}: ${m.content || ""}`).join("\n\n");
-    const out = await base44.integrations.Core.InvokeLLM({ prompt, model: model || cfg.chatModel });
+    const out = await base44.integrations.Core.InvokeLLM({ prompt, model: cloudModel(model || cfg.chatModel) });
     return typeof out === "string" ? out : (out?.content || JSON.stringify(out));
   }
   const r = await LocalAIGatewayService.chat({ messages, model: model || cfg.chatModel });
@@ -256,7 +266,7 @@ export async function chat(base44, { messages, model } = {}) {
 export async function analyze(base44, { prompt, response_json_schema, model } = {}) {
   const cfg = getConfig();
   if (cfg.provider === "CLOUD") {
-    return await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema, model: model || cfg.chatModel });
+    return await base44.integrations.Core.InvokeLLM({ prompt, response_json_schema, model: cloudModel(model || cfg.chatModel) });
   }
   const r = await LocalAIGatewayService.analyze({ prompt, response_json_schema, model: model || cfg.analysisModel });
   if (!r.ok) throw new Error(r.error || "Local gateway analyze failed");
@@ -275,7 +285,7 @@ export async function embed(base44, { input, model } = {}) {
 export async function documentAnalyze(base44, { file_url, prompt, response_json_schema, model } = {}) {
   const cfg = getConfig();
   if (cfg.provider === "CLOUD") {
-    return await base44.integrations.Core.InvokeLLM({ prompt: prompt || "Analyze this document.", file_urls: file_url ? [file_url] : undefined, response_json_schema, model: model || cfg.chatModel });
+    return await base44.integrations.Core.InvokeLLM({ prompt: prompt || "Analyze this document.", file_urls: file_url ? [file_url] : undefined, response_json_schema, model: cloudModel(model || cfg.chatModel) });
   }
   const r = await LocalAIGatewayService.analyzeDocument({ file_url, prompt, response_json_schema, model: model || cfg.analysisModel });
   if (!r.ok) throw new Error(r.error || "Local gateway document analysis failed");
