@@ -25,7 +25,7 @@ if ! curl -s "http://127.0.0.1:${PORT}/v1/models" >/dev/null 2>&1; then
 fi
 
 # 确认必备模型已拉取
-for M in qwen3 deepseek-r1:8b qwen3-embedding:0.6b; do
+for M in qwen3 deepseek-r1:8b nomic-embed-text; do
   if ! curl -s "http://127.0.0.1:${PORT}/api/show" -d "{\"name\":\"$M\"}" >/dev/null 2>&1; then
     say "拉取模型 $M（首次较慢）…"
     ollama pull "$M" || err "拉取 $M 失败，可稍后手动 ollama pull $M"
