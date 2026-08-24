@@ -23,6 +23,8 @@ import FilesPage from '@/pages/Files';
 import Activities from '@/pages/Activities';
 import AIAnalysisPage from '@/pages/AIAnalysis';
 import Risks from '@/pages/Risks';
+import Clients from '@/pages/Clients';
+import ClientDetail from '@/pages/ClientDetail';
 import AskBossAI from '@/pages/AskBossAI';
 import Comparison from '@/pages/Comparison';
 import Settings from '@/pages/Settings';
@@ -72,6 +74,8 @@ const AuthenticatedApp = () => {
           <Route path="/activities" element={<Activities />} />
           <Route path="/ai-analysis" element={<AIAnalysisPage />} />
           <Route path="/risks" element={<Risks />} />
+          <Route path="/clients" element={<Clients />} />
+          <Route path="/clients/:id" element={<ClientDetail />} />
           <Route path="/ask-bossai" element={<AskBossAI />} />
           <Route path="/comparison" element={<Comparison />} />
           <Route path="/settings" element={<Settings />} />

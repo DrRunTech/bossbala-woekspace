@@ -97,7 +97,7 @@ export default function Projects() {
     <div>
       <PageHeader
         title="Projects"
-        subtitle="Research projects with auto-calculated progress"
+        subtitle="Projects with auto-calculated progress"
         actions={<Button onClick={() => { setForm(empty); setOpen(true); }}><Plus className="h-4 w-4 mr-1.5" /> New Project</Button>}
       />
 
@@ -138,7 +138,7 @@ export default function Projects() {
       {!projects ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">{[...Array(6)].map((_, i) => <SkeletonCard key={i} />)}</div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={FolderKanban} title={projects.length === 0 ? "No projects yet" : "No projects match these filters"} description={projects.length === 0 ? "Create your first research project to start tracking tasks, activities, and evidence." : "Try adjusting or clearing the filters."} action={projects.length === 0 ? <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> New Project</Button> : null} />
+        <EmptyState icon={FolderKanban} title={projects.length === 0 ? "No projects yet" : "No projects match these filters"} description={projects.length === 0 ? "Create your first project to start tracking tasks, activities, and evidence." : "Try adjusting or clearing the filters."} action={projects.length === 0 ? <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> New Project</Button> : null} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((p) => {

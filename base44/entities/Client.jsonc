@@ -1,0 +1,197 @@
+{
+  "name": "Client",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "name": {
+      "type": "string",
+      "title": "Client Name"
+    },
+    "company": {
+      "type": "string",
+      "title": "Company / Organization"
+    },
+    "contactPerson": {
+      "type": "string",
+      "title": "Contact Person"
+    },
+    "email": {
+      "type": "string",
+      "title": "Email"
+    },
+    "phone": {
+      "type": "string",
+      "title": "Phone"
+    },
+    "industry": {
+      "type": "string",
+      "title": "Industry"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Lead",
+        "Active",
+        "Inactive",
+        "Churned"
+      ],
+      "default": "Lead",
+      "title": "Status"
+    },
+    "address": {
+      "type": "string",
+      "title": "Address"
+    },
+    "ownerId": {
+      "type": "string",
+      "title": "Account Owner"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "TEAM_LEADER"
+                  }
+                },
+                {
+                  "data.ownerId": "{{user.id}}"
+                },
+                {
+                  "created_by_id": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.organizationId": "{{user.data.organizationId}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "TEAM_LEADER"
+                  }
+                },
+                {
+                  "data.ownerId": "{{user.id}}"
+                },
+                {
+                  "created_by_id": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "created_by_id": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

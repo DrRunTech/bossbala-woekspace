@@ -1,0 +1,215 @@
+{
+  "name": "Contract",
+  "type": "object",
+  "properties": {
+    "organizationId": {
+      "type": "string",
+      "title": "Organization"
+    },
+    "title": {
+      "type": "string",
+      "title": "Title"
+    },
+    "clientId": {
+      "type": "string",
+      "title": "Client"
+    },
+    "projectId": {
+      "type": "string",
+      "title": "Related Project"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "Service",
+        "Sales",
+        "Maintenance",
+        "Consulting",
+        "Subscription",
+        "Other"
+      ],
+      "default": "Service",
+      "title": "Type"
+    },
+    "amount": {
+      "type": "number",
+      "title": "Contract Value"
+    },
+    "currency": {
+      "type": "string",
+      "default": "USD",
+      "title": "Currency"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Draft",
+        "Negotiating",
+        "Active",
+        "Completed",
+        "Terminated"
+      ],
+      "default": "Draft",
+      "title": "Status"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date",
+      "title": "Start Date"
+    },
+    "endDate": {
+      "type": "string",
+      "format": "date",
+      "title": "End Date"
+    },
+    "ownerId": {
+      "type": "string",
+      "title": "Owner"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Notes"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "title": "Tags"
+    }
+  },
+  "required": [
+    "title",
+    "clientId"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "TEAM_LEADER"
+                  }
+                },
+                {
+                  "data.ownerId": "{{user.id}}"
+                },
+                {
+                  "created_by_id": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.organizationId": "{{user.data.organizationId}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "TEAM_LEADER"
+                  }
+                },
+                {
+                  "data.ownerId": "{{user.id}}"
+                },
+                {
+                  "created_by_id": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "$and": [
+            {
+              "data.organizationId": "{{user.data.organizationId}}"
+            },
+            {
+              "$or": [
+                {
+                  "user_condition": {
+                    "data.appRole": "PI"
+                  }
+                },
+                {
+                  "user_condition": {
+                    "data.appRole": "ADMIN"
+                  }
+                },
+                {
+                  "created_by_id": "{{user.id}}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
