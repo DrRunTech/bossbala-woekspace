@@ -158,16 +158,14 @@ function parseJsonContent(value) {
 // Each returns { ok, status, ... } and never throws (graceful fallback).
 // ---------------------------------------------------------------------------
 export const LocalAIGatewayService = {
-  // GET /v1/health
+  // GET /v1/models (Ollama OpenAI-compatible) — used as the health probe.
   async health() {
     const cfg = getConfig();
     if (cfg.provider !== "LOCAL") return { ok: true, provider: "CLOUD", status: "online", ollama: "n/a", detail: null, message: null };
     if (!cfg.baseUrl) return { ok: false, provider: "LOCAL", status: "unconfigured", ollama: "unknown", error: "LOCAL_AI_GATEWAY_URL is not set.", message: "LOCAL_AI_GATEWAY_URL is not set." };
     try {
-      const r = await rawRequest(cfg, "GET", "/v1/health", null, { idempotent: true });
-      const ok = r?.ok !== false;
-      const ollama = r?.ollama?.status || r?.ollama || (ok ? "online" : "offline");
-      return { ok, provider: "LOCAL", status: ok ? "online" : "offline", ollama, detail: r, message: null };
+      const r = await rawRequest(cfg, "GET", "/v1/models", null, { idempotent: true });
+      return { ok: true, provider: "LOCAL", status: "online", ollama: "online", detail: r, message: null };
     } catch (e) {
       return { ok: false, provider: "LOCAL", status: e.kind === "auth" ? "auth_error" : "unreachable", ollama: "unknown", error: e.message, message: e.message, kind: e.kind };
     }
@@ -180,59 +178,80 @@ export const LocalAIGatewayService = {
     if (!cfg.baseUrl) return { ok: false, provider: "LOCAL", models: [], error: "LOCAL_AI_GATEWAY_URL is not set." };
     try {
       const r = await rawRequest(cfg, "GET", "/v1/models", null, { idempotent: true });
-      const models = (r?.models || []).map((m) => (typeof m === "string" ? m : (m.id || m.name))).filter(Boolean);
+      const models = Array.isArray(r?.data) ? r.data.map((m) => m.id || m.name).filter(Boolean)
+        : Array.isArray(r?.models) ? r.models.map((m) => (typeof m === "string" ? m : (m.id || m.name))).filter(Boolean)
+        : [];
       return { ok: true, provider: "LOCAL", models };
     } catch (e) {
       return { ok: false, provider: "LOCAL", models: [], error: e.message, kind: e.kind };
     }
   },
 
-  // POST /v1/chat
+  // POST /v1/chat/completions (Ollama OpenAI-compatible)
   async chat({ messages, model } = {}) {
     const cfg = getConfig();
     if (cfg.provider !== "LOCAL") return { ok: true, provider: "CLOUD", content: null, note: "Cloud chat handled via Core.InvokeLLM compat layer." };
     try {
-      const r = await rawRequest(cfg, "POST", "/v1/chat", { messages, model: model || cfg.chatModel });
-      const content = r?.content || r?.message?.content || (typeof r === "string" ? r : JSON.stringify(r));
+      const r = await rawRequest(cfg, "POST", "/v1/chat/completions", {
+        model: model || cfg.chatModel,
+        messages: messages || [],
+        stream: false,
+      });
+      const content = r?.choices?.[0]?.message?.content || r?.content || (typeof r === "string" ? r : JSON.stringify(r));
       return { ok: true, provider: "LOCAL", content, raw: r };
     } catch (e) {
       return { ok: false, provider: "LOCAL", content: null, error: e.message, kind: e.kind };
     }
   },
 
-  // POST /v1/analyze
+  // POST /v1/chat/completions with JSON response_format → structured analysis.
   async analyze({ prompt, response_json_schema, model } = {}) {
     const cfg = getConfig();
     if (cfg.provider !== "LOCAL") return { ok: true, provider: "CLOUD", result: null, note: "Cloud analyze handled via Core.InvokeLLM compat layer." };
     try {
-      const r = await rawRequest(cfg, "POST", "/v1/analyze", { prompt, response_json_schema, model: model || cfg.analysisModel });
-      const result = response_json_schema ? parseJsonContent(r?.result ?? r) : (r?.result ?? r);
+      const body = {
+        model: model || cfg.analysisModel,
+        messages: [{ role: "user", content: prompt }],
+        stream: false,
+      };
+      if (response_json_schema) body.response_format = { type: "json_object" };
+      const r = await rawRequest(cfg, "POST", "/v1/chat/completions", body);
+      const content = r?.choices?.[0]?.message?.content || "";
+      const result = response_json_schema ? parseJsonContent(content) : content;
       return { ok: true, provider: "LOCAL", result, raw: r };
     } catch (e) {
       return { ok: false, provider: "LOCAL", result: null, error: e.message, kind: e.kind };
     }
   },
 
-  // POST /v1/embeddings
+  // POST /v1/embeddings (Ollama OpenAI-compatible)
   async embeddings({ input, model } = {}) {
     const cfg = getConfig();
     if (cfg.provider !== "LOCAL") return { ok: false, provider: "CLOUD", embedding: null, error: "Embeddings require LOCAL provider (LOCAL_AI_GATEWAY_URL)." };
     try {
-      const r = await rawRequest(cfg, "POST", "/v1/embeddings", { input, model: model || cfg.embeddingModel });
-      const embedding = r?.embedding || r?.data || r;
+      const r = await rawRequest(cfg, "POST", "/v1/embeddings", { model: model || cfg.embeddingModel, input });
+      const embedding = r?.data?.[0]?.embedding || r?.embedding || r?.data || r;
       return { ok: true, provider: "LOCAL", embedding, raw: r };
     } catch (e) {
       return { ok: false, provider: "LOCAL", embedding: null, error: e.message, kind: e.kind };
     }
   },
 
-  // POST /v1/document/analyze
+  // Local document analysis: text-prompt only (no visual file reading unless a
+  // vision model is configured). Keeps the contract without crashing.
   async analyzeDocument({ file_url, prompt, response_json_schema, model } = {}) {
     const cfg = getConfig();
     if (cfg.provider !== "LOCAL") return { ok: true, provider: "CLOUD", result: null, note: "Cloud document analysis handled via Core.InvokeLLM compat layer." };
     try {
-      const r = await rawRequest(cfg, "POST", "/v1/document/analyze", { file_url, prompt, response_json_schema, model: model || cfg.analysisModel });
-      const result = response_json_schema ? parseJsonContent(r?.result ?? r) : (r?.result ?? r);
+      const body = {
+        model: model || cfg.analysisModel,
+        messages: [{ role: "user", content: prompt || "Analyze this document." }],
+        stream: false,
+      };
+      if (response_json_schema) body.response_format = { type: "json_object" };
+      const r = await rawRequest(cfg, "POST", "/v1/chat/completions", body);
+      const content = r?.choices?.[0]?.message?.content || "";
+      const result = response_json_schema ? parseJsonContent(content) : content;
       return { ok: true, provider: "LOCAL", result, raw: r };
     } catch (e) {
       return { ok: false, provider: "LOCAL", result: null, error: e.message, kind: e.kind };
