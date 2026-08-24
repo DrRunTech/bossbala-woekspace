@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useLookups } from "@/lib/useLookups";
 import EmptyState, { PageHeader } from "@/components/EmptyState";
 import { StatusBadge, RoleBadge, Avatar } from "@/components/ui/badges";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Users, Plus } from "lucide-react";
+import { Users, Plus, Trash2 } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
 
 const ROLES = ["PI", "TeamLeader", "Researcher", "Student"];
@@ -21,11 +22,27 @@ export default function People() {
   const { members, loading } = useLookups();
   const { t } = useLanguage();
   const enumLabel = (k) => (k ? t("enum." + k) : k);
+  const navigate = useNavigate();
   const [activities, setActivities] = useState([]);
   const [projects, setProjects] = useState([]);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
   const [saving, setSaving] = useState(false);
+  const [delTarget, setDelTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [delError, setDelError] = useState("");
+
+  const deleteMember = async () => {
+    if (!delTarget) return;
+    setDeleting(true); setDelError("");
+    try {
+      await base44.entities.Member.delete(delTarget.id);
+      setDelTarget(null);
+      window.location.reload();
+    } catch (e) {
+      setDelError(t("people.delete.failed"));
+    } finally { setDeleting(false); }
+  };
 
   useEffect(() => {
     (async () => {
@@ -75,11 +92,19 @@ export default function People() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {members.map((m) => (
-            <Link key={m.id} to={`/people/${m.id}`} className="rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm hover:border-slate-300 transition-all">
+            <div key={m.id} onClick={() => navigate(`/people/${m.id}`)} className="group relative cursor-pointer rounded-xl border border-slate-200 bg-white p-5 hover:shadow-sm hover:border-slate-300 transition-all">
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setDelTarget(m); }}
+                className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity h-7 w-7 inline-flex items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                title={t("common.delete")}
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
               <div className="flex items-start gap-3">
                 <Avatar name={m.name} src={m.avatarUrl} size={44} />
                 <div className="min-w-0 flex-1">
-                  <h3 className="font-semibold text-slate-900 truncate">{m.name}</h3>
+                  <h3 className="font-semibold text-slate-900 truncate pr-8">{m.name}</h3>
                   <p className="text-sm text-slate-500 truncate">{m.title || enumLabel(m.role)}</p>
                 </div>
               </div>
@@ -91,7 +116,7 @@ export default function People() {
                 <div><div className="text-xs text-slate-400">{t("people.projects")}</div><div className="text-slate-700">{projectCount(m.id)}</div></div>
                 <div><div className="text-xs text-slate-400">{t("people.hoursWeek")}</div><div className="text-slate-700">{hoursThisWeek(m.id).toFixed(1)}h</div></div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       )}
@@ -129,6 +154,22 @@ export default function People() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!delTarget} onOpenChange={(o) => { if (!o) { setDelTarget(null); setDelError(""); } }}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("people.delete.confirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{delTarget ? t("people.delete.confirm.msg", { name: delTarget.name }) : ""}</AlertDialogDescription>
+          </AlertDialogHeader>
+          {delError && <p className="text-sm text-rose-600 -mt-1">{delError}</p>}
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteMember} disabled={deleting} className="bg-rose-600 hover:bg-rose-700 text-white">
+              {deleting ? t("common.deleting") : t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

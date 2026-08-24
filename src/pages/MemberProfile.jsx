@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useLookups } from "@/lib/useLookups";
 import { PageHeader, SkeletonCard } from "@/components/EmptyState";
 import { StatusBadge, RoleBadge, Avatar, PriorityBadge, TypeBadge } from "@/components/ui/badges";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatDate, relativeTime, formatDuration } from "@/lib/bossai";
 import { useLanguage } from "@/lib/i18n";
-import { ArrowLeft, FileText } from "lucide-react";
+import { ArrowLeft, FileText, Trash2 } from "lucide-react";
 
 export default function MemberProfile() {
   const { id } = useParams();
@@ -18,6 +20,17 @@ export default function MemberProfile() {
   const [activities, setActivities] = useState([]);
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [delOpen, setDelOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
+
+  const deleteMember = async () => {
+    setDeleting(true);
+    try {
+      await base44.entities.Member.delete(id);
+      navigate("/people");
+    } catch { setDeleting(false); setDelOpen(false); }
+  };
 
   useEffect(() => {
     (async () => {
@@ -56,7 +69,7 @@ export default function MemberProfile() {
         <ArrowLeft className="h-4 w-4" /> {t("mp.back")}
       </Link>
 
-      <div className="flex items-start gap-4 mb-6">
+      <div className="flex items-start gap-4 mb-6 relative">
         <Avatar name={member.name} src={member.avatarUrl} size={64} />
         <div className="flex-1">
           <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">{member.name}</h1>
@@ -77,6 +90,9 @@ export default function MemberProfile() {
           <div><div className="text-2xl font-semibold text-slate-900">{doneTasks}</div><div className="text-xs text-slate-400">{t("mp.tasksDone")}</div></div>
           <div><div className="text-2xl font-semibold text-slate-900">{files.length}</div><div className="text-xs text-slate-400">{t("mp.files")}</div></div>
         </div>
+        <Button variant="outline" className="absolute top-0 right-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50" onClick={() => setDelOpen(true)}>
+          <Trash2 className="h-4 w-4 mr-1.5" /> {t("common.delete")}
+        </Button>
       </div>
 
       {/* Activity heatmap */}
@@ -138,6 +154,21 @@ export default function MemberProfile() {
           </div>
         </div>
       )}
+
+      <AlertDialog open={delOpen} onOpenChange={setDelOpen}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("people.delete.confirm.title")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("people.delete.confirm.msg", { name: member.name })}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>{t("common.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteMember} disabled={deleting} className="bg-rose-600 hover:bg-rose-700 text-white">
+              {deleting ? t("common.deleting") : t("common.delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
