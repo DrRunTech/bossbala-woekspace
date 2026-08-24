@@ -145,7 +145,7 @@ export default function Today() {
             <Building2 className="h-3.5 w-3.5 text-blue-700" />
             {org.name}
             <span className="text-slate-300">·</span>
-            <span className={org.type ? "text-slate-500 hidden" : "text-emerald-600"}>{org.type || "Healthy"}</span>
+            
           </span> :
         null} />
       
