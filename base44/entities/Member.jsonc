@@ -67,8 +67,92 @@
   ],
   "rls": {
     "read": true,
-    "create": true,
-    "update": true,
-    "delete": true
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "ADMIN"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "PI"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "TEAM_LEADER"
+          }
+        },
+        {
+          "data.email": "{{user.email}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "ADMIN"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "PI"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "TEAM_LEADER"
+          }
+        },
+        {
+          "data.email": "{{user.email}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "ADMIN"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "PI"
+          }
+        },
+        {
+          "user_condition": {
+            "data.appRole": "TEAM_LEADER"
+          }
+        },
+        {
+          "data.email": "{{user.email}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        }
+      ]
+    }
   }
 }
