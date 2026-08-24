@@ -43,10 +43,11 @@ function meanStd(values) {
 export default async function(req) {
   try {
     const base44 = createClientFromRequest(req);
-    let user = null;
-    try { user = await base44.auth.me(); } catch {}
+    const user = await base44.auth.me();
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
-    // Service-role reads: org-wide evidence for detection (works in scheduled runs with no user).
+    // Service-role reads: org-wide evidence for detection (admin-only; also used by the daily scheduled workflow).
     const [projects, tasks, activities, existing, audit, evidence, files] = await Promise.all([
       base44.asServiceRole.entities.Project.list('-created_date', 300),
       base44.asServiceRole.entities.Task.list('-created_date', 500),
