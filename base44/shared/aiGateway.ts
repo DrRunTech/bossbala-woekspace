@@ -1,35 +1,39 @@
 import { secrets } from "base44:runtime";
 
 // ============================================================================
-// LocalAIGatewayService
+// LocalAIGatewayService  (v2 — direct Ollama OpenAI-compatible)
 // ----------------------------------------------------------------------------
-// Centralized abstraction over the private Local AI Gateway (FastAPI).
-// Base44 NEVER calls Ollama / Qwen / DeepSeek directly. Every request flows:
+// Abstraction over a LOCAL Ollama instance (qwen3 / deepseek-r1 / embeddings).
+// Base44's backend functions run in a cloud sandbox and CANNOT reach
+// 127.0.0.1 / private IPs (the platform blocks loopback as SSRF). So the user's
+// Ollama must be exposed via a PUBLIC tunnel (cloudflared / ngrok) and that URL
+// is stored in LOCAL_AI_GATEWAY_URL. This module then speaks Ollama's built-in
+// OpenAI-compatible API directly — no separate FastAPI proxy is required:
 //
-//     Base44 (this module)  ──HTTPS──▶  Local AI Gateway  ──▶  Ollama  ──▶  models
+//     Base44 (cloud)  ──HTTPS──▶  public tunnel  ──▶  user's Ollama  ──▶  models
 //
-// The gateway exposes:
-//   GET  /v1/health           GET  /v1/models          POST /v1/chat
-//   POST /v1/analyze          POST /v1/embeddings      POST /v1/document/analyze
+// Endpoints used (Ollama OpenAI-compat):
+//   GET  /v1/models             POST /v1/chat/completions   POST /v1/embeddings
 //
-// Auth: `Authorization: Bearer <LOCAL_AI_GATEWAY_API_KEY>`.
+// Auth: `Authorization: Bearer <LOCAL_AI_GATEWAY_API_KEY>` when set
+// (Ollama ignores it unless the tunnel/proxy enforces it).
 //
-// Configuration (read from server-side secrets ONLY — never sent to browser):
+// Configuration (server-side secrets ONLY — never sent to the browser):
 //   AI_PROVIDER               CLOUD | LOCAL   (default CLOUD)
-//   LOCAL_AI_GATEWAY_URL      Base URL of the FastAPI gateway
-//   LOCAL_AI_GATEWAY_API_KEY  Bearer key for the gateway
-//   CHAT_MODEL                Default chat model
-//   ANALYSIS_MODEL            Research analysis model
-//   REASONING_MODEL           Reasoning model
-//   EMBEDDING_MODEL           Embedding model
+//   LOCAL_AI_GATEWAY_URL      Public URL of the tunnel to Ollama
+//   LOCAL_AI_GATEWAY_API_KEY  Optional Bearer key (only if the tunnel checks it)
+//   CHAT_MODEL                Default chat model          e.g. qwen3
+//   ANALYSIS_MODEL            Research analysis model    e.g. qwen3
+//   REASONING_MODEL           Reasoning model            e.g. deepseek-r1:8b
+//   EMBEDDING_MODEL           Embedding model            e.g. nomic-embed-text
 //
+// Robustness for qwen3/deepseek:
+//   - Thinking models emit <think>…</think> blocks; stripped before JSON parse.
+//   - JSON responses extracted via response_format + fence/brace fallback.
 // Guarantees:
-//   - 30s timeout per request, aborted cleanly.
-//   - Retry ONLY for safe/idempotent GETs (health, models) on network/5xx/429.
-//   - Auth errors (401/403), HTTP errors, and unreachable state are classified.
-//   - Structured JSON parsing for analysis/chat payloads (fenced or embedded).
+//   - 30s timeout, aborted cleanly; idempotent GETs retried on 5xx/429.
+//   - Auth/unreachable/HTTP errors classified (auth_error / unreachable / http).
 //   - Structured, non-throwing service methods → graceful fallback.
-//   - Backend logging for every request and failure.
 // ============================================================================
 
 const TIMEOUT_MS = 30000;
@@ -138,19 +142,29 @@ function cloudModel(name) {
   return typeof name === "string" && CLOUD_MODELS.has(name) ? name : "automatic";
 }
 
+// qwen3 / deepseek-r1 interleave reasoning in <think>…</think> blocks before
+// the final answer. Strip them (and stray control markers) before JSON parsing.
+function stripReasoning(s) {
+  return s
+    .replace(/<think>[\s\S]*?<\/think>/gi, "")
+    .replace(/<think>[\s\S]*$/i, "")            // unterminated thinking
+    .replace(/<\|[^|]*\|>/g, "")                // <|im_start|> etc.
+    .trim();
+}
+
 function parseJsonContent(value) {
   if (value == null) return null;
   if (typeof value === "object") return value;
   if (typeof value !== "string") return value;
-  const trimmed = value.trim();
+  const cleaned = stripReasoning(value.trim());
   const tryParse = (s) => { try { return JSON.parse(s); } catch { return undefined; } };
-  let p = tryParse(trimmed);
+  let p = tryParse(cleaned);
   if (p !== undefined) return p;
-  const fence = trimmed.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const fence = cleaned.match(/```(?:json)?\s*([\s\S]*?)```/i);
   if (fence) { p = tryParse(fence[1].trim()); if (p !== undefined) return p; }
-  const m = trimmed.match(/[{[][\s\S]*[}\]]/);
+  const m = cleaned.match(/[{[][\s\S]*[}\]]/);
   if (m) { p = tryParse(m[0]); if (p !== undefined) return p; }
-  return trimmed;
+  return cleaned || value.trim();
 }
 
 // ---------------------------------------------------------------------------
@@ -211,13 +225,18 @@ export const LocalAIGatewayService = {
     try {
       const body = {
         model: model || cfg.analysisModel,
-        messages: [{ role: "user", content: prompt }],
+        messages: [
+          { role: "system", content: response_json_schema
+            ? "You are a strict JSON generator. Output ONLY a single valid JSON object matching the requested schema. No prose, no markdown fences, no reasoning."
+            : "You are a precise, evidence-based research analyst." },
+          { role: "user", content: prompt },
+        ],
         stream: false,
       };
       if (response_json_schema) body.response_format = { type: "json_object" };
       const r = await rawRequest(cfg, "POST", "/v1/chat/completions", body);
       const content = r?.choices?.[0]?.message?.content || "";
-      const result = response_json_schema ? parseJsonContent(content) : content;
+      const result = response_json_schema ? parseJsonContent(content) : stripReasoning(content);
       return { ok: true, provider: "LOCAL", result, raw: r };
     } catch (e) {
       return { ok: false, provider: "LOCAL", result: null, error: e.message, kind: e.kind };
@@ -245,13 +264,18 @@ export const LocalAIGatewayService = {
     try {
       const body = {
         model: model || cfg.analysisModel,
-        messages: [{ role: "user", content: prompt || "Analyze this document." }],
+        messages: [
+          { role: "system", content: response_json_schema
+            ? "You are a strict JSON generator. Output ONLY a single valid JSON object. No prose, no fences, no reasoning."
+            : "You are a precise document analyst." },
+          { role: "user", content: prompt || "Analyze this document." },
+        ],
         stream: false,
       };
       if (response_json_schema) body.response_format = { type: "json_object" };
       const r = await rawRequest(cfg, "POST", "/v1/chat/completions", body);
       const content = r?.choices?.[0]?.message?.content || "";
-      const result = response_json_schema ? parseJsonContent(content) : content;
+      const result = response_json_schema ? parseJsonContent(content) : stripReasoning(content);
       return { ok: true, provider: "LOCAL", result, raw: r };
     } catch (e) {
       return { ok: false, provider: "LOCAL", result: null, error: e.message, kind: e.kind };
