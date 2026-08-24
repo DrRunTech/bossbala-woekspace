@@ -50,7 +50,7 @@ export function getConfig() {
   const provider = raw === "LOCAL" ? "LOCAL" : "CLOUD";
   return {
     provider,
-    baseUrl: (secrets.get("LOCAL_AI_GATEWAY_URL") || "").replace(/\/$/, ""),
+    baseUrl: (secrets.get("LOCAL_AI_GATEWAY_URL") || "").trim().replace(/\/+$/, ""),
     hasKey: !!secrets.get("LOCAL_AI_GATEWAY_API_KEY"),
     chatModel: secrets.get("CHAT_MODEL") || "qwen3:8b",
     analysisModel: secrets.get("ANALYSIS_MODEL") || secrets.get("CHAT_MODEL") || "qwen3:8b",
