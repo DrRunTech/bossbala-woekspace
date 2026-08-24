@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import {
   LayoutDashboard, FolderKanban, Users, ListChecks, Files, Activity,
-  Sparkles, ShieldAlert, MessageSquareText, GitCompare, Settings, LogOut, ChevronLeft, Briefcase,
+  Sparkles, ShieldAlert, MessageSquareText, GitCompare, Settings, LogOut, ChevronLeft, Briefcase, BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n";
@@ -14,6 +14,7 @@ const NAV = [
   { to: "/people", labelKey: "nav.people", icon: Users },
   { to: "/tasks", labelKey: "nav.tasks", icon: ListChecks },
   { to: "/files", labelKey: "nav.files", icon: Files },
+  { to: "/data-studio", labelKey: "nav.dataStudio", icon: BarChart3 },
   { to: "/activities", labelKey: "nav.activities", icon: Activity },
   { to: "/ai-analysis", labelKey: "nav.aiAnalysis", icon: Sparkles },
   { to: "/clients", labelKey: "nav.clients", icon: Briefcase },

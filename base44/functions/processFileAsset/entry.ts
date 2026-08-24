@@ -46,6 +46,7 @@ Return JSON with:
 - evidence: {create: true only if the file is genuine research evidence, type (one of: ${EVIDENCE_TYPES.join(", ")}), title, description, confidence, rationale}.
 - uncertainFields: list of field names where you are not confident.
 - extractedText: up to 1500 chars of extracted text (empty for images/binary).
+- datasets: chartable numeric series extracted from the file (tables, CSV/Excel content, figures with numbers). Each item: { name (short series label, e.g. "Monthly Revenue", "Efficiency"), chartType ("line"|"bar"|"pie"), unit (e.g. "%", "USD", blank if none), labels (array of category/index strings, one per value), values (array of numbers, same length as labels), xLabel, yLabel }. Extract 1-6 datasets ONLY from data actually present — never fabricate numbers. For spreadsheets/CSV, prefer real columns. Leave empty [] if the file has no tabular/numeric data.
 - notes: any caveats.
 
 Projects (id | name):
@@ -75,6 +76,7 @@ Analyze the file and return JSON only.`;
             evidence: { type: 'object', properties: { create: { type: 'boolean' }, type: { type: 'string' }, title: { type: 'string' }, description: { type: 'string' }, confidence: { type: 'number' }, rationale: { type: 'string' } } },
             uncertainFields: { type: 'array', items: { type: 'string' } },
             extractedText: { type: 'string' },
+            datasets: { type: 'array', items: { type: 'object', properties: { name: { type: 'string' }, chartType: { type: 'string' }, unit: { type: 'string' }, labels: { type: 'array', items: { type: 'string' } }, values: { type: 'array', items: { type: 'number' } }, xLabel: { type: 'string' }, yLabel: { type: 'string' } } } },
             notes: { type: 'string' }
           }
         }
@@ -97,6 +99,21 @@ Analyze the file and return JSON only.`;
     const potentialActivities = Array.isArray(analysis.potentialActivities) ? analysis.potentialActivities : [];
     const evidence = analysis.evidence || {};
     const extractedText = (analysis.extractedText || '').slice(0, 500);
+    const datasets = Array.isArray(analysis.datasets)
+      ? analysis.datasets
+          .filter((d) => d && Array.isArray(d.values) && d.values.length > 0)
+          .map((d) => ({
+            name: (d.name || 'Series').toString().slice(0, 80),
+            chartType: ['line', 'bar', 'pie'].includes(d.chartType) ? d.chartType : 'bar',
+            unit: (d.unit || '').toString().slice(0, 20),
+            labels: Array.isArray(d.labels) ? d.labels.map((l) => String(l ?? '')).slice(0, 200) : d.values.map((_, i) => String(i + 1)),
+            values: d.values.map((v) => Number(v)).filter((n) => !Number.isNaN(n)),
+            xLabel: (d.xLabel || '').toString().slice(0, 60),
+            yLabel: (d.yLabel || '').toString().slice(0, 60),
+          }))
+          .filter((d) => d.values.length > 0)
+          .slice(0, 6)
+      : [];
 
     // Auto-link project/task only if the uploader left them blank (never override user intent).
     const update = {
@@ -113,6 +130,7 @@ Analyze the file and return JSON only.`;
         evidence: { create: !!evidence.create, type: evidence.type || '', title: evidence.title || '', description: evidence.description || '', confidence: evidence.confidence || 0, rationale: evidence.rationale || '' },
         uncertainFields,
         extractedText,
+        datasets,
         notes: analysis.notes || '',
         processedAt: new Date().toISOString()
       }

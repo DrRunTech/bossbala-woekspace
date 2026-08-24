@@ -25,6 +25,7 @@ import AIAnalysisPage from '@/pages/AIAnalysis';
 import Risks from '@/pages/Risks';
 import Clients from '@/pages/Clients';
 import ClientDetail from '@/pages/ClientDetail';
+import DataStudio from '@/pages/DataStudio';
 import AskBossAI from '@/pages/AskBossAI';
 import Comparison from '@/pages/Comparison';
 import Settings from '@/pages/Settings';
@@ -71,6 +72,7 @@ const AuthenticatedApp = () => {
           <Route path="/people/:id" element={<MemberProfile />} />
           <Route path="/tasks" element={<Tasks />} />
           <Route path="/files" element={<FilesPage />} />
+          <Route path="/data-studio" element={<DataStudio />} />
           <Route path="/activities" element={<Activities />} />
           <Route path="/ai-analysis" element={<AIAnalysisPage />} />
           <Route path="/risks" element={<Risks />} />

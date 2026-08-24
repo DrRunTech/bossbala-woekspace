@@ -1,0 +1,309 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useLookups } from "@/lib/useLookups";
+import EmptyState, { PageHeader, SkeletonCard } from "@/components/EmptyState";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  BarChart3, LineChart as LineIcon, PieChart as PieIcon, RefreshCw, BarChart2, Sparkles, Layers,
+} from "lucide-react";
+import {
+  ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+} from "recharts";
+import { relativeTime } from "@/lib/bossai";
+
+const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#64748b"];
+
+const datasetsOf = (f) => (Array.isArray(f?.aiData?.datasets) ? f.aiData.datasets : []);
+
+export default function DataStudio() {
+  const { projects, projectName } = useLookups();
+  const [assets, setAssets] = useState(null);
+  const [selected, setSelected] = useState([]); // file ids, order matters
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [chartMode, setChartMode] = useState("auto"); // auto | line | bar
+  const [busyId, setBusyId] = useState(null);
+
+  const load = async () => {
+    setAssets(await base44.entities.FileAsset.list("-created_date", 500));
+  };
+  useEffect(() => { load(); }, []);
+
+  const filesWith = useMemo(() => (assets || []).filter((f) => datasetsOf(f).length > 0), [assets]);
+
+  const list = useMemo(() => {
+    if (!assets) return [];
+    return (projectFilter === "all" ? assets : assets.filter((f) => f.projectId === projectFilter));
+  }, [assets, projectFilter]);
+
+  const selectedFiles = useMemo(
+    () => selected.map((id) => assets?.find((f) => f.id === id)).filter(Boolean),
+    [selected, assets]
+  );
+
+  const reanalyze = async (id) => {
+    setBusyId(id);
+    try {
+      await base44.functions.invoke("processFileAsset", { fileAssetId: id });
+      await load();
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const toggle = (id) =>
+    setSelected((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+
+  // Compare mode: group datasets by name across selected files
+  const compared = useMemo(() => {
+    if (selectedFiles.length < 2) return [];
+    const groups = {};
+    selectedFiles.forEach((f) => {
+      datasetsOf(f).forEach((d) => {
+        const key = d.name || "Series";
+        if (!groups[key]) groups[key] = { name: key, unit: d.unit, xLabel: d.xLabel, yLabel: d.yLabel, files: [] };
+        groups[key].files.push({ file: f, dataset: d });
+      });
+    });
+    return Object.values(groups).filter((g) => g.files.length > 0);
+  }, [selectedFiles]);
+
+  // Build chart rows for a compare group: union labels in file order
+  const buildCompareData = (group) => {
+    const labels = [];
+    group.files.forEach(({ dataset }) => {
+      dataset.labels.forEach((l) => { if (!labels.includes(l)) labels.push(l); });
+    });
+    return labels.map((l) => {
+      const row = { label: l };
+      group.files.forEach(({ file, dataset }) => {
+        const idx = dataset.labels.indexOf(l);
+        row[file.name] = idx >= 0 ? dataset.values[idx] : null;
+      });
+      return row;
+    });
+  };
+
+  const renderSingleCharts = () => {
+    const f = selectedFiles[0];
+    const sets = datasetsOf(f);
+    if (sets.length === 0) {
+      return (
+        <EmptyState
+          icon={BarChart2}
+          title="No chartable data extracted"
+          description="This file has no tabular/numeric data. If it should, re-run AI analysis to extract datasets."
+          action={<Button onClick={() => reanalyze(f.id)} disabled={busyId === f.id}><RefreshCw className={`h-4 w-4 mr-1.5 ${busyId === f.id ? "animate-spin" : ""}`} /> Re-analyze</Button>}
+        />
+      );
+    }
+    return (
+      <div className="space-y-5">
+        {f.aiSummary && (
+          <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 flex gap-3">
+            <Sparkles className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+            <div>
+              <div className="text-sm font-medium text-slate-800">AI Analysis</div>
+              <p className="text-sm text-slate-600 mt-0.5">{f.aiSummary}</p>
+              {f.keywords?.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {f.keywords.map((k) => <span key={k} className="text-[11px] bg-white text-slate-500 px-1.5 py-0.5 rounded border border-slate-200">{k}</span>)}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-medium text-slate-400 mr-1">Chart type</span>
+          <Button size="sm" variant={chartMode === "auto" ? "default" : "outline"} onClick={() => setChartMode("auto")}>Auto</Button>
+          <Button size="sm" variant={chartMode === "line" ? "default" : "outline"} onClick={() => setChartMode("line")}><LineIcon className="h-3.5 w-3.5 mr-1" />Line</Button>
+          <Button size="sm" variant={chartMode === "bar" ? "default" : "outline"} onClick={() => setChartMode("bar")}><BarChart3 className="h-3.5 w-3.5 mr-1" />Bar</Button>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {sets.map((d, i) => {
+            const data = d.labels.map((l, j) => ({ label: l, value: d.values[j] }));
+            const type = chartMode === "auto" ? d.chartType : chartMode;
+            return (
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-semibold text-slate-800">{d.name}</h4>
+                  <span className="text-xs text-slate-400">{d.unit || ""}{d.values.length} pts</span>
+                </div>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    {type === "pie" ? (
+                      <PieChart>
+                        <Pie data={data} dataKey="value" nameKey="label" cx="50%" cy="50%" outerRadius={80} label>
+                          {data.map((_, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    ) : type === "line" ? (
+                      <LineChart data={data} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <Tooltip />
+                        <Line dataKey="value" stroke={COLORS[i % COLORS.length]} strokeWidth={2} dot={{ r: 3 }} name={d.name} />
+                      </LineChart>
+                    ) : (
+                      <BarChart data={data} margin={{ top: 8, right: 12, bottom: 8, left: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <Tooltip />
+                        <Bar dataKey="value" fill={COLORS[i % COLORS.length]} name={d.name} radius={[4, 4, 0, 0]} />
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
+  const renderCompareCharts = () => (
+    <div className="space-y-5">
+      <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-4 flex gap-3">
+        <Layers className="h-5 w-5 text-violet-500 shrink-0 mt-0.5" />
+        <div>
+          <div className="text-sm font-medium text-slate-800">Comparing {selectedFiles.length} files</div>
+          <p className="text-sm text-slate-600 mt-0.5">Datasets with the same name are merged across files — each file is one series, showing historical change.</p>
+          <div className="flex flex-wrap gap-1 mt-2">
+            {selectedFiles.map((f) => <span key={f.id} className="text-[11px] bg-white text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">{f.name}</span>)}
+          </div>
+        </div>
+      </div>
+      {compared.length === 0 ? (
+        <EmptyState icon={Layers} title="No shared datasets to compare" description="Selected files have no datasets with matching names. Rename datasets or select files of the same type." />
+      ) : (
+        <div className="grid grid-cols-1 gap-4">
+          {compared.map((g, gi) => {
+            const data = buildCompareData(g);
+            const type = chartMode === "line" ? "line" : "bar";
+            return (
+              <div key={gi} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex items-center justify-between mb-1">
+                  <h4 className="text-sm font-semibold text-slate-800">{g.name}</h4>
+                  <span className="text-xs text-slate-400">{g.unit || ""}{g.files.length} files</span>
+                </div>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    {type === "line" ? (
+                      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <Tooltip />
+                        <Legend />
+                        {g.files.map(({ file }, fi) => (
+                          <Line key={file.id} dataKey={file.name} stroke={COLORS[fi % COLORS.length]} strokeWidth={2} dot={{ r: 3 }} connectNulls />
+                        ))}
+                      </LineChart>
+                    ) : (
+                      <BarChart data={data} margin={{ top: 8, right: 16, bottom: 8, left: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                        <XAxis dataKey="label" tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <YAxis tick={{ fontSize: 11 }} stroke="#94a3b8" />
+                        <Tooltip />
+                        <Legend />
+                        {g.files.map(({ file }, fi) => (
+                          <Bar key={file.id} dataKey={file.name} fill={COLORS[fi % COLORS.length]} radius={[3, 3, 0, 0]} />
+                        ))}
+                      </BarChart>
+                    )}
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  return (
+    <div>
+      <PageHeader
+        title="Data Studio"
+        subtitle="Visualize AI-extracted data from any uploaded file; merge same-type data across history for comparison."
+      />
+
+      <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">
+        {/* File list */}
+        <div className="rounded-xl border border-slate-200 bg-white">
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
+            <span className="text-sm font-semibold text-slate-700">Files</span>
+            <Select value={projectFilter} onValueChange={setProjectFilter}>
+              <SelectTrigger className="h-8 w-40 text-xs"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">All Projects</SelectItem>{projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
+          <div className="max-h-[70vh] overflow-y-auto divide-y divide-slate-50">
+            {!assets ? (
+              <div className="p-3 space-y-2">{[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}</div>
+            ) : list.length === 0 ? (
+              <div className="p-6"><EmptyState icon={BarChart2} title="No files" description="Upload data files to visualize them here." /></div>
+            ) : (
+              list.map((f) => {
+                const has = datasetsOf(f).length > 0;
+                const isSel = selected.includes(f.id);
+                return (
+                  <button
+                    key={f.id}
+                    onClick={() => toggle(f.id)}
+                    className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${isSel ? "bg-blue-50" : "hover:bg-slate-50"}`}
+                  >
+                    <div className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${isSel ? "bg-blue-600 border-blue-600" : "border-slate-300"}`}>
+                      {isSel && <span className="text-white text-[10px]">✓</span>}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-slate-800 truncate">{f.name}</span>
+                        {has && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full shrink-0">{datasetsOf(f).length} set</span>}
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-0.5 truncate">
+                        {f.documentType || f.type} · {relativeTime(f.created_date)}{f.projectId ? ` · ${projectName(f.projectId)}` : ""}
+                      </div>
+                      {!has && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); reanalyze(f.id); }}
+                          disabled={busyId === f.id}
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline"
+                        >
+                          <RefreshCw className={`h-3 w-3 ${busyId === f.id ? "animate-spin" : ""}`} /> Extract data
+                        </button>
+                      )}
+                    </div>
+                  </button>
+                );
+              })
+            )}
+          </div>
+          {assets && filesWith.length > 0 && (
+            <div className="px-4 py-2 border-t border-slate-100 text-[11px] text-slate-400">
+              {filesWith.length} file(s) with chartable data · {selected.length} selected
+              {selected.length > 0 && <button onClick={() => setSelected([])} className="ml-2 text-blue-600 hover:underline">Clear</button>}
+            </div>
+          )}
+        </div>
+
+        {/* Visualization */}
+        <div className="min-w-0">
+          {selected.length === 0 ? (
+            <EmptyState icon={BarChart3} title="Select a file to visualize" description="Pick a file from the left to see its AI-extracted datasets as charts. Select multiple to compare same-type data across history." />
+          ) : selected.length === 1 ? (
+            renderSingleCharts()
+          ) : (
+            renderCompareCharts()
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
