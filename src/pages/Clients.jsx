@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Briefcase, Plus, Filter, Mail, Phone } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 const CLIENT_STATUSES = ["Lead", "Active", "Inactive", "Churned"];
 const empty = { name: "", company: "", contactPerson: "", email: "", phone: "", industry: "", status: "Lead", address: "", notes: "" };
@@ -21,6 +22,8 @@ const STATUS_STYLES = {
 };
 
 export default function Clients() {
+  const { t } = useLanguage();
+  const cEnum = (k) => (k ? t("clients.enum." + k) : k);
   const [clients, setClients] = useState(null);
   const [contracts, setContracts] = useState(null);
   const [open, setOpen] = useState(false);
@@ -72,39 +75,39 @@ export default function Clients() {
   return (
     <div>
       <PageHeader
-        title="Clients"
-        subtitle="Manage customers and contracts across your projects"
-        actions={<Button onClick={() => { setForm(empty); setOpen(true); }}><Plus className="h-4 w-4 mr-1.5" /> New Client</Button>}
+        title={t("clients.title")}
+        subtitle={t("clients.subtitle")}
+        actions={<Button onClick={() => { setForm(empty); setOpen(true); }}><Plus className="h-4 w-4 mr-1.5" /> {t("clients.new")}</Button>}
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-xs text-slate-400">Total Clients</div>
+          <div className="text-xs text-slate-400">{t("clients.totalClients")}</div>
           <div className="text-xl font-semibold text-slate-900 mt-1">{clients?.length ?? "—"}</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-xs text-slate-400">Active</div>
+          <div className="text-xs text-slate-400">{t("clients.active")}</div>
           <div className="text-xl font-semibold text-slate-900 mt-1">{clients ? clients.filter((c) => c.status === "Active").length : "—"}</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-xs text-slate-400">Contracts</div>
+          <div className="text-xs text-slate-400">{t("clients.contracts")}</div>
           <div className="text-xl font-semibold text-slate-900 mt-1">{contracts?.length ?? "—"}</div>
         </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="text-xs text-slate-400">Contract Value</div>
+          <div className="text-xs text-slate-400">{t("clients.contractValue")}</div>
           <div className="text-xl font-semibold text-slate-900 mt-1">{totalValue ? totalValue.toLocaleString() : "—"}</div>
         </div>
       </div>
 
       <div className="flex items-center gap-2 mb-5 flex-wrap">
         <div className="flex items-center gap-1.5 text-xs font-medium text-slate-400 mr-1">
-          <Filter className="h-3.5 w-3.5" /> Filter
+          <Filter className="h-3.5 w-3.5" /> {t("common.filter")}
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-40"><SelectValue placeholder="Status" /></SelectTrigger>
+          <SelectTrigger className="w-40"><SelectValue placeholder={t("clients.f.status")} /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {CLIENT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            <SelectItem value="all">{t("clients.allStatuses")}</SelectItem>
+            {CLIENT_STATUSES.map((s) => <SelectItem key={s} value={s}>{cEnum(s)}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -114,9 +117,9 @@ export default function Clients() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon={Briefcase}
-          title={clients.length === 0 ? "No clients yet" : "No clients match this filter"}
-          description={clients.length === 0 ? "Add a client to start tracking contracts and revenue." : "Try a different status filter."}
-          action={clients.length === 0 ? <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> New Client</Button> : null}
+          title={clients.length === 0 ? t("clients.empty.title") : t("clients.empty.noMatch")}
+          description={clients.length === 0 ? t("clients.empty.desc") : t("clients.empty.adjust")}
+          action={clients.length === 0 ? <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-1.5" /> {t("clients.new")}</Button> : null}
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -129,7 +132,7 @@ export default function Clients() {
                     <h3 className="font-semibold text-slate-900 group-hover:text-blue-700 transition-colors truncate">{c.name}</h3>
                     {c.company && <p className="text-sm text-slate-500 truncate">{c.company}</p>}
                   </div>
-                  <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[c.status] || "bg-slate-100 text-slate-500"}`}>{c.status}</span>
+                  <span className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_STYLES[c.status] || "bg-slate-100 text-slate-500"}`}>{cEnum(c.status)}</span>
                 </div>
                 {c.industry && <div className="text-xs text-slate-400 mt-2">{c.industry}</div>}
                 <div className="flex flex-col gap-1 mt-3 text-xs text-slate-500">
@@ -137,9 +140,9 @@ export default function Clients() {
                   {c.phone && <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" /> {c.phone}</span>}
                 </div>
                 <div className="grid grid-cols-3 gap-2 mt-4 pt-3 border-t border-slate-100 text-sm">
-                  <div><div className="text-xs text-slate-400">Contracts</div><div className="text-slate-700">{s.count}</div></div>
-                  <div><div className="text-xs text-slate-400">Active</div><div className="text-slate-700">{s.active}</div></div>
-                  <div><div className="text-xs text-slate-400">Value</div><div className="text-slate-700">{s.value ? s.value.toLocaleString() : "—"}</div></div>
+                  <div><div className="text-xs text-slate-400">{t("clients.contracts")}</div><div className="text-slate-700">{s.count}</div></div>
+                  <div><div className="text-xs text-slate-400">{t("clients.active")}</div><div className="text-slate-700">{s.active}</div></div>
+                  <div><div className="text-xs text-slate-400">{t("clients.value")}</div><div className="text-slate-700">{s.value ? s.value.toLocaleString() : "—"}</div></div>
                 </div>
               </Link>
             );
@@ -149,29 +152,29 @@ export default function Clients() {
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>New Client</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("clients.dlg.title")}</DialogTitle></DialogHeader>
           <div className="space-y-3 py-2">
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Client Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. Acme Inc." /></div>
-              <div><Label>Company</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
-              <div><Label>Contact Person</Label><Input value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} /></div>
-              <div><Label>Industry</Label><Input value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} placeholder="e.g. Manufacturing" /></div>
-              <div><Label>Email</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-              <div><Label>Phone</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
+              <div><Label>{t("clients.f.name")}</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t("clients.f.namePh")} /></div>
+              <div><Label>{t("clients.f.company")}</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
+              <div><Label>{t("clients.f.contact")}</Label><Input value={form.contactPerson} onChange={(e) => setForm({ ...form, contactPerson: e.target.value })} /></div>
+              <div><Label>{t("clients.f.industry")}</Label><Input value={form.industry} onChange={(e) => setForm({ ...form, industry: e.target.value })} placeholder={t("clients.f.industryPh")} /></div>
+              <div><Label>{t("clients.f.email")}</Label><Input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+              <div><Label>{t("clients.f.phone")}</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
               <div>
-                <Label>Status</Label>
+                <Label>{t("clients.f.status")}</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>{CLIENT_STATUSES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+                  <SelectContent>{CLIENT_STATUSES.map((s) => <SelectItem key={s} value={s}>{cEnum(s)}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
-              <div><Label>Address</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
+              <div><Label>{t("clients.f.address")}</Label><Input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} /></div>
             </div>
-            <div><Label>Notes</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
+            <div><Label>{t("clients.f.notes")}</Label><Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={save} disabled={saving || !form.name.trim()}>{saving ? "Creating…" : "Create Client"}</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t("common.cancel")}</Button>
+            <Button onClick={save} disabled={saving || !form.name.trim()}>{saving ? t("common.creating") : t("clients.create")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -6,15 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Sparkles, Send, User, Link2, TrendingUp, AlertTriangle } from "lucide-react";
 import { useSearchParams } from "react-router-dom";
 import AiGatewayStatus from "@/components/AiGatewayStatus";
-
-const SUGGESTED = [
-  "What did Zhang San do this week?",
-  "Why is the TMR project delayed?",
-  "Which project progressed fastest this month?",
-  "What research activities decreased compared with last week?",
-  "Show all projects currently at risk.",
-  "Compare this week's activity with last week.",
-];
+import { useLanguage } from "@/lib/i18n";
 
 const SEVERITY_COLORS = {
   Low: "bg-slate-100 text-slate-600",
@@ -24,6 +16,9 @@ const SEVERITY_COLORS = {
 };
 
 export default function AskBossAI() {
+  const { t } = useLanguage();
+  const enumLabel = (k) => (k ? t("enum." + k) : k);
+  const suggestions = [1, 2, 3, 4, 5, 6].map((i) => t(`ask.sug${i}`));
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,7 +38,7 @@ export default function AskBossAI() {
       if (!answer) throw new Error("no answer");
       setMessages((m) => [...m, { role: "assistant", answer }]);
     } catch {
-      setMessages((m) => [...m, { role: "assistant", answer: { conclusion: "I couldn't analyze that right now. Please try again.", evidence: [], comparison: "", risks: [], recommendations: [], confidence: 0, insufficient: false } }]);
+      setMessages((m) => [...m, { role: "assistant", answer: { conclusion: t("ask.err"), evidence: [], comparison: "", risks: [], recommendations: [], confidence: 0, insufficient: false } }]);
     } finally {
       setLoading(false);
     }
@@ -58,7 +53,7 @@ export default function AskBossAI() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <PageHeader title="Ask BossBala" subtitle="Evidence-first answers about your research group — every conclusion cites real activities, tasks, files, or evidence." />
+      <PageHeader title={t("ask.title")} subtitle={t("ask.subtitle")} />
       <AiGatewayStatus variant="banner" />
 
       <div className="flex-1 rounded-xl border border-slate-200 bg-white flex flex-col overflow-hidden">
@@ -66,10 +61,10 @@ export default function AskBossAI() {
           {messages.length === 0 && (
             <div className="text-center py-10">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-50 text-blue-700 mb-4"><Sparkles className="h-6 w-6" /></div>
-              <h3 className="text-base font-semibold text-slate-800">Ask anything about your research</h3>
-              <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">I retrieve the relevant evidence, analyze it, and answer with citations — never fabricating progress.</p>
+              <h3 className="text-base font-semibold text-slate-800">{t("ask.empty.title")}</h3>
+              <p className="text-sm text-slate-500 mt-1 max-w-md mx-auto">{t("ask.empty.desc")}</p>
               <div className="flex flex-wrap gap-2 justify-center mt-6 max-w-2xl mx-auto">
-                {SUGGESTED.map((s) => (
+                {suggestions.map((s) => (
                   <button key={s} onClick={() => ask(s)} className="text-sm text-slate-600 bg-slate-50 hover:bg-blue-50 hover:text-blue-700 border border-slate-200 rounded-full px-3.5 py-1.5 transition-colors">{s}</button>
                 ))}
               </div>
@@ -106,7 +101,7 @@ export default function AskBossAI() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); ask(); } }}
-              placeholder="Ask about progress, risks, team activity…"
+              placeholder={t("ask.placeholder")}
               rows={1}
               className="resize-none min-h-[44px] max-h-32"
             />
@@ -119,23 +114,25 @@ export default function AskBossAI() {
 }
 
 function AnswerCard({ answer }) {
+  const { t } = useLanguage();
+  const enumLabel = (k) => (k ? t("enum." + k) : k);
   const insufficient = answer.insufficient || answer.conclusion === "Insufficient evidence.";
   return (
     <div className="rounded-2xl bg-slate-50 text-slate-800 px-4 py-3 space-y-3">
       <div className="flex items-center gap-2 pb-2 border-b border-slate-200/70">
-        <span className="flex items-center gap-1 text-xs text-slate-500"><TrendingUp className="h-3.5 w-3.5" /> Confidence {Math.round((answer.confidence || 0) * 100)}%</span>
+        <span className="flex items-center gap-1 text-xs text-slate-500"><TrendingUp className="h-3.5 w-3.5" /> {t("ask.confidence")} {Math.round((answer.confidence || 0) * 100)}%</span>
         <div className="ml-auto h-1.5 w-24 rounded-full bg-slate-200 overflow-hidden">
           <div className="h-full bg-blue-600 rounded-full" style={{ width: `${Math.round((answer.confidence || 0) * 100)}%` }} />
         </div>
       </div>
 
-      <Section label="Conclusion">
+      <Section label={t("ask.sec.conclusion")} icon={null}>
         <p className={`text-sm ${insufficient ? "text-amber-600 italic" : "text-slate-800"}`}>{answer.conclusion}</p>
       </Section>
 
       {!insufficient && (
         <>
-          <Section label="Evidence">
+          <Section label={t("ask.sec.evidence")} icon={null}>
             {answer.evidence?.length ? (
               <ul className="space-y-1.5">
                 {answer.evidence.map((e, idx) => (
@@ -145,32 +142,32 @@ function AnswerCard({ answer }) {
                   </li>
                 ))}
               </ul>
-            ) : <p className="text-xs text-slate-400">No evidence cited.</p>}
+            ) : <p className="text-xs text-slate-400">{t("ask.noEvidence")}</p>}
           </Section>
 
           {answer.comparison && (
-            <Section label="Comparison">
+            <Section label={t("ask.sec.comparison")} icon={null}>
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{answer.comparison}</p>
             </Section>
           )}
 
-          <Section label="Risk">
+          <Section label={t("ask.sec.risk")} icon="risk">
             {answer.risks?.length ? (
               <ul className="space-y-2">
                 {answer.risks.map((r, i) => (
                   <li key={i} className="text-sm text-slate-700 border border-slate-200 bg-white rounded-lg p-2.5">
                     <div className="flex items-center gap-2">
-                      {r.severity && <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${SEVERITY_COLORS[r.severity] || ""}`}>{r.severity}</span>}
+                      {r.severity && <span className={`text-[11px] px-1.5 py-0.5 rounded-full ${SEVERITY_COLORS[r.severity] || ""}`}>{enumLabel(r.severity)}</span>}
                       <span>{r.description}</span>
                     </div>
                     {r.refIds?.length > 0 && <RefChips ids={r.refIds} />}
                   </li>
                 ))}
               </ul>
-            ) : <p className="text-xs text-slate-400">None identified.</p>}
+            ) : <p className="text-xs text-slate-400">{t("ask.noneIdentified")}</p>}
           </Section>
 
-          <Section label="Recommendation">
+          <Section label={t("ask.sec.recommendation")} icon={null}>
             {answer.recommendations?.length ? (
               <ul className="space-y-2">
                 {answer.recommendations.map((r, i) => (
@@ -180,13 +177,13 @@ function AnswerCard({ answer }) {
                   </li>
                 ))}
               </ul>
-            ) : <p className="text-xs text-slate-400">None.</p>}
+            ) : <p className="text-xs text-slate-400">{t("ask.none")}</p>}
           </Section>
 
           {answer.evidence?.length > 0 && (
             <div className="flex items-center gap-1 text-[11px] text-slate-400 pt-1">
-              <Link2 className="h-3 w-3" /> {answer.evidence.length} evidence reference{answer.evidence.length === 1 ? "" : "s"} cited
-              {answer.meta?.recordsConsidered != null && <span className="ml-auto">considered {answer.meta.recordsConsidered} records</span>}
+              <Link2 className="h-3 w-3" /> {t("ask.refsCited", { n: answer.evidence.length })}
+              {answer.meta?.recordsConsidered != null && <span className="ml-auto">{t("ask.considered", { n: answer.meta.recordsConsidered })}</span>}
             </div>
           )}
         </>
@@ -195,11 +192,11 @@ function AnswerCard({ answer }) {
   );
 }
 
-function Section({ label, children }) {
+function Section({ label, icon, children }) {
   return (
     <section>
       <h4 className="text-[11px] font-semibold text-slate-400 uppercase tracking-wide mb-1 flex items-center gap-1">
-        {label === "Risk" && <AlertTriangle className="h-3 w-3" />}{label}
+        {icon === "risk" && <AlertTriangle className="h-3 w-3" />}{label}
       </h4>
       {children}
     </section>

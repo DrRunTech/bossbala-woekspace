@@ -1,5 +1,8 @@
 // Shared helpers and label/color maps for BossBala Research
 
+let LOCALE = "en-US";
+export function setLocale(lang) { LOCALE = lang === "zh" ? "zh-CN" : "en-US"; }
+
 export const STATUS_COLORS = {
   // Project status
   PLANNED: "bg-slate-100 text-slate-600",
@@ -136,27 +139,32 @@ export function formatDate(d) {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
   if (isNaN(date)) return "—";
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  return date.toLocaleDateString(LOCALE, { month: "short", day: "numeric", year: "numeric" });
 }
 
 export function formatDateTime(d) {
   if (!d) return "—";
   const date = typeof d === "string" ? new Date(d) : d;
   if (isNaN(date)) return "—";
-  return date.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+  return date.toLocaleString(LOCALE, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 }
 
+const REL_LOCALE = {
+  "en-US": { just: "just now", m: (n) => `${n}m ago`, h: (n) => `${n}h ago`, d: (n) => `${n}d ago` },
+  "zh-CN": { just: "刚刚", m: (n) => `${n} 分钟前`, h: (n) => `${n} 小时前`, d: (n) => `${n} 天前` },
+};
 export function relativeTime(d) {
   if (!d) return "";
   const date = typeof d === "string" ? new Date(d) : d;
   const diff = Date.now() - date.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
+  const r = REL_LOCALE[LOCALE] || REL_LOCALE["en-US"];
+  if (mins < 1) return r.just;
+  if (mins < 60) return r.m(mins);
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
+  if (hrs < 24) return r.h(hrs);
   const days = Math.floor(hrs / 24);
-  if (days < 7) return `${days}d ago`;
+  if (days < 7) return r.d(days);
   return formatDate(d);
 }
 

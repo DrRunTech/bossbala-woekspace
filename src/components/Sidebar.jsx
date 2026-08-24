@@ -19,7 +19,7 @@ const NAV = [
   { to: "/ai-analysis", labelKey: "nav.aiAnalysis", icon: Sparkles },
   { to: "/clients", labelKey: "nav.clients", icon: Briefcase },
   { to: "/risks", labelKey: "nav.risks", icon: ShieldAlert },
-  { to: "/ask-bossai", label: "Ask BossBala", icon: MessageSquareText },
+  { to: "/ask-bossai", labelKey: "nav.askBossBala", icon: MessageSquareText },
   { to: "/comparison", labelKey: "nav.comparison", icon: GitCompare },
   { to: "/settings", labelKey: "nav.settings", icon: Settings },
 ];
@@ -57,7 +57,7 @@ export default function Sidebar() {
         <button
           onClick={() => setCollapsed((c) => !c)}
           className="ml-auto text-slate-400 hover:text-slate-700 transition-colors"
-          aria-label="Toggle sidebar"
+          aria-label={t("sidebar.toggle")}
         >
           <ChevronLeft className={cn("h-4 w-4 transition-transform", collapsed && "rotate-180")} />
         </button>
@@ -93,9 +93,9 @@ export default function Sidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0 flex-1 leading-tight">
-              <div className="text-xs font-medium text-slate-700 truncate">{user?.email || "User"}</div>
+              <div className="text-xs font-medium text-slate-700 truncate">{user?.email || t("sidebar.user")}</div>
               <button onClick={handleLogout} className="flex items-center gap-1 text-[11px] text-slate-400 hover:text-slate-700">
-                <LogOut className="h-3 w-3" /> Sign out
+                <LogOut className="h-3 w-3" /> {t("sidebar.signOut")}
               </button>
             </div>
           )}

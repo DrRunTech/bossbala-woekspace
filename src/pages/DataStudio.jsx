@@ -12,6 +12,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
 } from "recharts";
 import { relativeTime } from "@/lib/bossai";
+import { useLanguage } from "@/lib/i18n";
 
 const COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899", "#64748b"];
 
@@ -19,6 +20,8 @@ const datasetsOf = (f) => (Array.isArray(f?.aiData?.datasets) ? f.aiData.dataset
 
 export default function DataStudio() {
   const { projects, projectName } = useLookups();
+  const { t } = useLanguage();
+  const enumLabel = (k) => (k ? t("enum." + k) : k);
   const [assets, setAssets] = useState(null);
   const [selected, setSelected] = useState([]); // file ids, order matters
   const [projectFilter, setProjectFilter] = useState("all");
@@ -92,9 +95,9 @@ export default function DataStudio() {
       return (
         <EmptyState
           icon={BarChart2}
-          title="No chartable data extracted"
-          description="This file has no tabular/numeric data. If it should, re-run AI analysis to extract datasets."
-          action={<Button onClick={() => reanalyze(f.id)} disabled={busyId === f.id}><RefreshCw className={`h-4 w-4 mr-1.5 ${busyId === f.id ? "animate-spin" : ""}`} /> Re-analyze</Button>}
+          title={t("ds.noChartable")}
+          description={t("ds.noChartableDesc")}
+          action={<Button onClick={() => reanalyze(f.id)} disabled={busyId === f.id}><RefreshCw className={`h-4 w-4 mr-1.5 ${busyId === f.id ? "animate-spin" : ""}`} /> {t("ds.reanalyze")}</Button>}
         />
       );
     }
@@ -104,7 +107,7 @@ export default function DataStudio() {
           <div className="rounded-xl border border-blue-100 bg-blue-50/50 p-4 flex gap-3">
             <Sparkles className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
             <div>
-              <div className="text-sm font-medium text-slate-800">AI Analysis</div>
+              <div className="text-sm font-medium text-slate-800">{t("ds.aiAnalysis")}</div>
               <p className="text-sm text-slate-600 mt-0.5">{f.aiSummary}</p>
               {f.keywords?.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
@@ -115,10 +118,10 @@ export default function DataStudio() {
           </div>
         )}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-medium text-slate-400 mr-1">Chart type</span>
-          <Button size="sm" variant={chartMode === "auto" ? "default" : "outline"} onClick={() => setChartMode("auto")}>Auto</Button>
-          <Button size="sm" variant={chartMode === "line" ? "default" : "outline"} onClick={() => setChartMode("line")}><LineIcon className="h-3.5 w-3.5 mr-1" />Line</Button>
-          <Button size="sm" variant={chartMode === "bar" ? "default" : "outline"} onClick={() => setChartMode("bar")}><BarChart3 className="h-3.5 w-3.5 mr-1" />Bar</Button>
+          <span className="text-xs font-medium text-slate-400 mr-1">{t("ds.chartType")}</span>
+          <Button size="sm" variant={chartMode === "auto" ? "default" : "outline"} onClick={() => setChartMode("auto")}>{t("ds.auto")}</Button>
+          <Button size="sm" variant={chartMode === "line" ? "default" : "outline"} onClick={() => setChartMode("line")}><LineIcon className="h-3.5 w-3.5 mr-1" />{t("ds.line")}</Button>
+          <Button size="sm" variant={chartMode === "bar" ? "default" : "outline"} onClick={() => setChartMode("bar")}><BarChart3 className="h-3.5 w-3.5 mr-1" />{t("ds.bar")}</Button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {sets.map((d, i) => {
@@ -128,7 +131,7 @@ export default function DataStudio() {
               <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="text-sm font-semibold text-slate-800">{d.name}</h4>
-                  <span className="text-xs text-slate-400">{d.unit || ""}{d.values.length} pts</span>
+                  <span className="text-xs text-slate-400">{d.unit || ""}{d.values.length} {t("ds.pts")}</span>
                 </div>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
@@ -172,15 +175,15 @@ export default function DataStudio() {
       <div className="rounded-xl border border-violet-100 bg-violet-50/50 p-4 flex gap-3">
         <Layers className="h-5 w-5 text-violet-500 shrink-0 mt-0.5" />
         <div>
-          <div className="text-sm font-medium text-slate-800">Comparing {selectedFiles.length} files</div>
-          <p className="text-sm text-slate-600 mt-0.5">Datasets with the same name are merged across files — each file is one series, showing historical change.</p>
+          <div className="text-sm font-medium text-slate-800">{t("ds.comparing", { n: selectedFiles.length })}</div>
+          <p className="text-sm text-slate-600 mt-0.5">{t("ds.compareDesc")}</p>
           <div className="flex flex-wrap gap-1 mt-2">
             {selectedFiles.map((f) => <span key={f.id} className="text-[11px] bg-white text-slate-600 px-1.5 py-0.5 rounded border border-slate-200">{f.name}</span>)}
           </div>
         </div>
       </div>
       {compared.length === 0 ? (
-        <EmptyState icon={Layers} title="No shared datasets to compare" description="Selected files have no datasets with matching names. Rename datasets or select files of the same type." />
+        <EmptyState icon={Layers} title={t("ds.noShared")} description={t("ds.noSharedDesc")} />
       ) : (
         <div className="grid grid-cols-1 gap-4">
           {compared.map((g, gi) => {
@@ -190,7 +193,7 @@ export default function DataStudio() {
               <div key={gi} className="rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between mb-1">
                   <h4 className="text-sm font-semibold text-slate-800">{g.name}</h4>
-                  <span className="text-xs text-slate-400">{g.unit || ""}{g.files.length} files</span>
+                  <span className="text-xs text-slate-400">{g.unit || ""}{t("ds.filesCount", { n: g.files.length })}</span>
                 </div>
                 <div className="h-72">
                   <ResponsiveContainer width="100%" height="100%">
@@ -230,25 +233,25 @@ export default function DataStudio() {
   return (
     <div>
       <PageHeader
-        title="Data Studio"
-        subtitle="Visualize AI-extracted data from any uploaded file; merge same-type data across history for comparison."
+        title={t("ds.title")}
+        subtitle={t("ds.subtitle")}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">
         {/* File list */}
         <div className="rounded-xl border border-slate-200 bg-white">
           <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between gap-2">
-            <span className="text-sm font-semibold text-slate-700">Files</span>
+            <span className="text-sm font-semibold text-slate-700">{t("ds.files")}</span>
             <Select value={projectFilter} onValueChange={setProjectFilter}>
               <SelectTrigger className="h-8 w-40 text-xs"><SelectValue /></SelectTrigger>
-              <SelectContent><SelectItem value="all">All Projects</SelectItem>{projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+              <SelectContent><SelectItem value="all">{t("ds.allProjects")}</SelectItem>{projects.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
             </Select>
           </div>
           <div className="max-h-[70vh] overflow-y-auto divide-y divide-slate-50">
             {!assets ? (
               <div className="p-3 space-y-2">{[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}</div>
             ) : list.length === 0 ? (
-              <div className="p-6"><EmptyState icon={BarChart2} title="No files" description="Upload data files to visualize them here." /></div>
+              <div className="p-6"><EmptyState icon={BarChart2} title={t("ds.noFiles")} description={t("ds.noFilesDesc")} /></div>
             ) : (
               list.map((f) => {
                 const has = datasetsOf(f).length > 0;
@@ -265,10 +268,10 @@ export default function DataStudio() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-slate-800 truncate">{f.name}</span>
-                        {has && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full shrink-0">{datasetsOf(f).length} set</span>}
+                        {has && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full shrink-0">{datasetsOf(f).length} {t("ds.setUnit")}</span>}
                       </div>
                       <div className="text-[11px] text-slate-400 mt-0.5 truncate">
-                        {f.documentType || f.type} · {relativeTime(f.created_date)}{f.projectId ? ` · ${projectName(f.projectId)}` : ""}
+                        {f.documentType || enumLabel(f.type)} · {relativeTime(f.created_date)}{f.projectId ? ` · ${projectName(f.projectId)}` : ""}
                       </div>
                       {!has && (
                         <button
@@ -276,7 +279,7 @@ export default function DataStudio() {
                           disabled={busyId === f.id}
                           className="mt-1 inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline"
                         >
-                          <RefreshCw className={`h-3 w-3 ${busyId === f.id ? "animate-spin" : ""}`} /> Extract data
+                          <RefreshCw className={`h-3 w-3 ${busyId === f.id ? "animate-spin" : ""}`} /> {t("ds.extractData")}
                         </button>
                       )}
                     </div>
@@ -287,8 +290,8 @@ export default function DataStudio() {
           </div>
           {assets && filesWith.length > 0 && (
             <div className="px-4 py-2 border-t border-slate-100 text-[11px] text-slate-400">
-              {filesWith.length} file(s) with chartable data · {selected.length} selected
-              {selected.length > 0 && <button onClick={() => setSelected([])} className="ml-2 text-blue-600 hover:underline">Clear</button>}
+              {t("ds.filesWith", { n: filesWith.length, m: selected.length })}
+              {selected.length > 0 && <button onClick={() => setSelected([])} className="ml-2 text-blue-600 hover:underline">{t("ds.clear")}</button>}
             </div>
           )}
         </div>
@@ -296,7 +299,7 @@ export default function DataStudio() {
         {/* Visualization */}
         <div className="min-w-0">
           {selected.length === 0 ? (
-            <EmptyState icon={BarChart3} title="Select a file to visualize" description="Pick a file from the left to see its AI-extracted datasets as charts. Select multiple to compare same-type data across history." />
+            <EmptyState icon={BarChart3} title={t("ds.selectToVisualize")} description={t("ds.selectToVisualizeDesc")} />
           ) : selected.length === 1 ? (
             renderSingleCharts()
           ) : (

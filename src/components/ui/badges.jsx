@@ -1,6 +1,12 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import { STATUS_COLORS, PRIORITY_COLORS, RISK_COLORS, ROLE_COLORS, ACTIVITY_TYPE_COLORS } from "@/lib/bossai";
+import { useLanguage } from "@/lib/i18n";
+
+function useEnum() {
+  const { t } = useLanguage();
+  return (key) => (key ? t("enum." + key) : key);
+}
 
 export function Badge({ children, className }) {
   return (
@@ -11,23 +17,28 @@ export function Badge({ children, className }) {
 }
 
 export function StatusBadge({ status }) {
-  return <Badge className={STATUS_COLORS[status] || "bg-slate-100 text-slate-500"}>{status}</Badge>;
+  const e = useEnum();
+  return <Badge className={STATUS_COLORS[status] || "bg-slate-100 text-slate-500"}>{e(status)}</Badge>;
 }
 
 export function PriorityBadge({ priority }) {
-  return <Badge className={PRIORITY_COLORS[priority] || "bg-slate-100 text-slate-500"}>{priority}</Badge>;
+  const e = useEnum();
+  return <Badge className={PRIORITY_COLORS[priority] || "bg-slate-100 text-slate-500"}>{e(priority)}</Badge>;
 }
 
 export function RiskBadge({ level }) {
-  return <Badge className={RISK_COLORS[level] || "bg-slate-100 text-slate-500"}>{level}</Badge>;
+  const e = useEnum();
+  return <Badge className={RISK_COLORS[level] || "bg-slate-100 text-slate-500"}>{e(level)}</Badge>;
 }
 
 export function RoleBadge({ role }) {
-  return <Badge className={ROLE_COLORS[role] || "bg-slate-100 text-slate-500"}>{role}</Badge>;
+  const e = useEnum();
+  return <Badge className={ROLE_COLORS[role] || "bg-slate-100 text-slate-500"}>{e(role)}</Badge>;
 }
 
 export function TypeBadge({ type, colorMap = ACTIVITY_TYPE_COLORS }) {
-  return <Badge className={colorMap[type] || "bg-slate-100 text-slate-500"}>{type}</Badge>;
+  const e = useEnum();
+  return <Badge className={colorMap[type] || "bg-slate-100 text-slate-500"}>{e(type)}</Badge>;
 }
 
 export function ProgressBar({ value, className }) {
