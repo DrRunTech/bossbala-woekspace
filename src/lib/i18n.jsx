@@ -625,6 +625,13 @@ const translations = {
     "ds.extractData": "Extract data",
     "ds.setUnit": "set",
     "ds.filesCount": "{n} files",
+    "ds.openLocal": "Open local / network file",
+    "ds.localBadge": "Local",
+    "ds.localHint": "Or pick CSV / TSV / JSON files straight from your disk or network drive — parsed in the browser, not uploaded.",
+    "ds.localBusy": "Parsing…",
+    "ds.localParseErr": "Couldn't parse {name} (CSV / TSV / JSON only).",
+    "ds.localNoData": "No chartable data in this file.",
+    "ds.removeLocal": "Remove",
   },
   zh: {
     "brand.research": "工作空间",
@@ -1241,6 +1248,13 @@ const translations = {
     "ds.extractData": "提取数据",
     "ds.setUnit": "组",
     "ds.filesCount": "{n} 个文件",
+    "ds.openLocal": "打开本地 / 网盘文件",
+    "ds.localBadge": "本地",
+    "ds.localHint": "也可直接从本地硬盘或网盘选择 CSV / TSV / JSON 文件 — 浏览器内解析，不上传到系统。",
+    "ds.localBusy": "解析中…",
+    "ds.localParseErr": "无法解析 {name}（仅支持 CSV / TSV / JSON）。",
+    "ds.localNoData": "该文件无可绘图数据。",
+    "ds.removeLocal": "移除",
   },
 };
 

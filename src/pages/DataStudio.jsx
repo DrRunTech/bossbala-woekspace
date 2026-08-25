@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   BarChart3, LineChart as LineIcon, PieChart as PieIcon, RefreshCw, BarChart2, Sparkles, Layers,
+  FolderOpen, X,
 } from "lucide-react";
+import { pickLocalFiles, fileToAssetShape } from "@/lib/localDataParse";
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -27,22 +29,48 @@ export default function DataStudio() {
   const [projectFilter, setProjectFilter] = useState("all");
   const [chartMode, setChartMode] = useState("auto"); // auto | line | bar
   const [busyId, setBusyId] = useState(null);
+  const [localFiles, setLocalFiles] = useState([]);
+  const [localBusy, setLocalBusy] = useState(false);
+  const [localErr, setLocalErr] = useState("");
+
+  const openLocal = async () => {
+    setLocalErr("");
+    setLocalBusy(true);
+    try {
+      const files = await pickLocalFiles();
+      if (files.length === 0) return;
+      const shaped = await Promise.all(files.map((f) => fileToAssetShape(f).catch(() => null)));
+      const ok = shaped.filter(Boolean);
+      setLocalFiles((cur) => [...cur, ...ok]);
+      if (ok.length > 0) setSelected((cur) => [...cur, ok[0].id]);
+      const failed = files.length - ok.length;
+      if (failed > 0) setLocalErr(t("ds.localParseErr", { name: files.find((f) => !shaped[files.indexOf(f)])?.name || "" }));
+    } finally {
+      setLocalBusy(false);
+    }
+  };
+
+  const removeLocal = (id) => {
+    setLocalFiles((cur) => cur.filter((f) => f.id !== id));
+    setSelected((cur) => cur.filter((x) => x !== id));
+  };
 
   const load = async () => {
     setAssets(await base44.entities.FileAsset.list("-created_date", 500));
   };
   useEffect(() => { load(); }, []);
 
-  const filesWith = useMemo(() => (assets || []).filter((f) => datasetsOf(f).length > 0), [assets]);
+  const allFiles = useMemo(() => [...localFiles, ...(assets || [])], [localFiles, assets]);
+  const filesWith = useMemo(() => allFiles.filter((f) => datasetsOf(f).length > 0), [allFiles]);
 
   const list = useMemo(() => {
-    if (!assets) return [];
-    return (projectFilter === "all" ? assets : assets.filter((f) => f.projectId === projectFilter));
-  }, [assets, projectFilter]);
+    const sys = !assets ? [] : (projectFilter === "all" ? assets : assets.filter((f) => f.projectId === projectFilter));
+    return [...localFiles, ...sys];
+  }, [localFiles, assets, projectFilter]);
 
   const selectedFiles = useMemo(
-    () => selected.map((id) => assets?.find((f) => f.id === id)).filter(Boolean),
-    [selected, assets]
+    () => selected.map((id) => allFiles.find((f) => f.id === id)).filter(Boolean),
+    [selected, allFiles]
   );
 
   const reanalyze = async (id) => {
@@ -235,7 +263,14 @@ export default function DataStudio() {
       <PageHeader
         title={t("ds.title")}
         subtitle={t("ds.subtitle")}
+        actions={
+          <Button variant="outline" onClick={openLocal} disabled={localBusy}>
+            <FolderOpen className="h-4 w-4 mr-1.5" /> {localBusy ? t("ds.localBusy") : t("ds.openLocal")}
+          </Button>
+        }
       />
+      <p className="text-xs text-slate-400 -mt-4 mb-4">{t("ds.localHint")}</p>
+      {localErr && <p className="text-xs text-rose-600 mb-3">{localErr}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">
         {/* File list */}
@@ -269,17 +304,29 @@ export default function DataStudio() {
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-slate-800 truncate">{f.name}</span>
                         {has && <span className="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-full shrink-0">{datasetsOf(f).length} {t("ds.setUnit")}</span>}
+                        {f._local && <span className="text-[10px] bg-amber-50 text-amber-700 px-1.5 py-0.5 rounded-full shrink-0">{t("ds.localBadge")}</span>}
                       </div>
                       <div className="text-[11px] text-slate-400 mt-0.5 truncate">
-                        {f.documentType || enumLabel(f.type)} · {relativeTime(f.created_date)}{f.projectId ? ` · ${projectName(f.projectId)}` : ""}
+                        {f.documentType || enumLabel(f.type)} · {f._local ? t("ds.localBadge") : relativeTime(f.created_date)}{f.projectId ? ` · ${projectName(f.projectId)}` : ""}
                       </div>
-                      {!has && (
+                      {!has && f._local && (
+                        <p className="mt-1 text-[11px] text-slate-400">{t("ds.localNoData")}</p>
+                      )}
+                      {!has && !f._local && (
                         <button
                           onClick={(e) => { e.stopPropagation(); reanalyze(f.id); }}
                           disabled={busyId === f.id}
                           className="mt-1 inline-flex items-center gap-1 text-[11px] text-blue-600 hover:underline"
                         >
                           <RefreshCw className={`h-3 w-3 ${busyId === f.id ? "animate-spin" : ""}`} /> {t("ds.extractData")}
+                        </button>
+                      )}
+                      {f._local && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removeLocal(f.id); }}
+                          className="mt-1 inline-flex items-center gap-1 text-[11px] text-rose-600 hover:underline"
+                        >
+                          <X className="h-3 w-3" /> {t("ds.removeLocal")}
                         </button>
                       )}
                     </div>
