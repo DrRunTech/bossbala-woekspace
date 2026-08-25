@@ -8,7 +8,7 @@ import {
   BarChart3, LineChart as LineIcon, PieChart as PieIcon, RefreshCw, BarChart2, Sparkles, Layers,
   FolderOpen, X,
 } from "lucide-react";
-import { pickLocalFiles, fileToAssetShape } from "@/lib/localDataParse";
+import { pickLocalFiles, fileToAssetShape, isClientParseable, analyzeViaAI } from "@/lib/localDataParse";
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -31,22 +31,48 @@ export default function DataStudio() {
   const [busyId, setBusyId] = useState(null);
   const [localFiles, setLocalFiles] = useState([]);
   const [localBusy, setLocalBusy] = useState(false);
+  const [localStage, setLocalStage] = useState("");
   const [localErr, setLocalErr] = useState("");
 
   const openLocal = async () => {
     setLocalErr("");
     setLocalBusy(true);
+    setLocalStage("");
     try {
       const files = await pickLocalFiles();
       if (files.length === 0) return;
-      const shaped = await Promise.all(files.map((f) => fileToAssetShape(f).catch(() => null)));
-      const ok = shaped.filter(Boolean);
-      setLocalFiles((cur) => [...cur, ...ok]);
-      if (ok.length > 0) setSelected((cur) => [...cur, ok[0].id]);
-      const failed = files.length - ok.length;
-      if (failed > 0) setLocalErr(t("ds.localParseErr", { name: files.find((f) => !shaped[files.indexOf(f)])?.name || "" }));
+      const clientFiles = files.filter(isClientParseable);
+      const aiFiles = files.filter((f) => !isClientParseable(f));
+
+      // CSV / TSV / JSON — parse in the browser, nothing uploaded.
+      if (clientFiles.length) {
+        const shaped = await Promise.all(clientFiles.map((f) => fileToAssetShape(f).catch(() => null)));
+        const ok = shaped.filter(Boolean);
+        if (ok.length) {
+          setLocalFiles((cur) => [...cur, ...ok]);
+          setSelected((cur) => [...cur, ok[0].id]);
+        }
+        if (clientFiles.length - ok.length > 0) setLocalErr(t("ds.localParseErr", { name: "" }));
+      }
+
+      // PDF / images / office — upload + AI extraction, then visualize.
+      let firstAiId = null;
+      for (const f of aiFiles) {
+        setLocalStage(t("ds.localAiStage") + " · " + f.name);
+        try {
+          const asset = await analyzeViaAI(f);
+          if (asset && !firstAiId) firstAiId = asset.id;
+        } catch {
+          setLocalErr((cur) => (cur ? cur + " " : "") + t("ds.localAiErr", { name: f.name }));
+        }
+      }
+      if (aiFiles.length) {
+        await load();
+        if (firstAiId) setSelected((cur) => (cur.includes(firstAiId) ? cur : [...cur, firstAiId]));
+      }
     } finally {
       setLocalBusy(false);
+      setLocalStage("");
     }
   };
 
@@ -269,7 +295,8 @@ export default function DataStudio() {
           </Button>
         }
       />
-      <p className="text-xs text-slate-400 -mt-4 mb-4">{t("ds.localHint")}</p>
+      <p className="text-xs text-slate-400 -mt-4 mb-4">{t("ds.localAiNote")}</p>
+      {localStage && <p className="text-xs text-blue-600 mb-3 flex items-center gap-1.5"><RefreshCw className="h-3.5 w-3.5 animate-spin" />{localStage}</p>}
       {localErr && <p className="text-xs text-rose-600 mb-3">{localErr}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-5">

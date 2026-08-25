@@ -183,16 +183,30 @@ export function canPickViaFS() {
   return typeof window !== "undefined" && typeof window.showOpenFilePicker === "function";
 }
 
+const CLIENT_EXTS = ["csv", "tsv", "txt", "dat", "json"];
+
+export function isClientParseable(file) {
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  return CLIENT_EXTS.includes(ext);
+}
+
 export async function pickLocalFiles() {
   if (canPickViaFS()) {
     try {
       const handles = await window.showOpenFilePicker({
         multiple: true,
         types: [{
-          description: "Data files (CSV / TSV / JSON)",
+          description: "Data, document or image files",
           accept: {
             "text/csv": [".csv", ".tsv", ".txt", ".dat"],
             "application/json": [".json"],
+            "application/pdf": [".pdf"],
+            "image/png": [".png"],
+            "image/jpeg": [".jpg", ".jpeg"],
+            "image/tiff": [".tif", ".tiff"],
+            "image/bmp": [".bmp"],
+            "image/gif": [".gif"],
+            "image/webp": [".webp"],
             "text/plain": [".csv", ".tsv", ".txt"],
           },
         }],
@@ -207,8 +221,36 @@ export async function pickLocalFiles() {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
-    input.accept = ".csv,.tsv,.txt,.dat,.json";
+    input.accept = ".csv,.tsv,.txt,.dat,.json,.pdf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.gif,.webp";
     input.onchange = () => resolve(Array.from(input.files || []));
     input.click();
   });
+}
+
+// For formats the browser can't turn into numeric datasets (PDF / images / office
+// docs), upload the file and run the existing AI extraction pipeline so its
+// chartable data lands on a real FileAsset we can visualize.
+import { base44 } from "@/api/base44Client";
+import { detectDocumentType, entityTypeFor } from "@/lib/storage";
+
+export async function analyzeViaAI(file) {
+  const { file_url } = await base44.integrations.Core.UploadFile({ file });
+  const me = await base44.auth.me();
+  const documentType = detectDocumentType(file) || "Other";
+  const created = await base44.entities.FileAsset.create({
+    organizationId: me?.organizationId,
+    name: file.name,
+    type: entityTypeFor(documentType),
+    documentType,
+    fileUrl: file_url,
+    fileSize: file.size,
+    mimeType: file.type,
+    storageRef: file_url,
+    storageBackend: "base44",
+    uploadedBy: me?.id,
+    category: "RawData",
+    version: 1,
+  });
+  await base44.functions.invoke("processFileAsset", { fileAssetId: created.id });
+  return await base44.entities.FileAsset.get(created.id);
 }
