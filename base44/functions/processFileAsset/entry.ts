@@ -92,6 +92,18 @@ Analyze the file and return JSON only.`;
       return Response.json({ ok: true, note: 'File unreadable; metadata updated with no AI extraction.' });
     }
 
+    // The model may return a non-object (refusal / empty / error payload) without
+    // throwing. Treat that as unreadable so downstream `.summary` access can't
+    // crash the whole function with a 500.
+    if (!analysis || typeof analysis !== 'object' || Array.isArray(analysis)) {
+      await base44.entities.FileAsset.update(asset.id, {
+        aiSummary: 'Unable to extract content automatically (no structured analysis returned).',
+        aiConfidence: 0,
+        aiData: { fileType: asset.documentType || asset.type, notes: 'No structured analysis returned by the model.', processedAt: new Date().toISOString() }
+      });
+      return Response.json({ ok: true, note: 'No structured analysis returned; metadata updated.' });
+    }
+
     const summary = analysis.summary || '';
     const summaryConfidence = typeof analysis.summaryConfidence === 'number' ? analysis.summaryConfidence : 0;
     const keywords = Array.isArray(analysis.keywords) ? analysis.keywords.slice(0, 8) : [];
@@ -142,22 +154,27 @@ Analyze the file and return JSON only.`;
     await base44.entities.FileAsset.update(asset.id, update);
 
     // Generate a ResearchEvidence record when the AI judges the file as genuine evidence.
+    // A failure here (e.g. RLS / validation) must not negate the successful FileAsset update.
     let evidenceRecord = null;
     if (evidence.create) {
-      const evType = EVIDENCE_TYPES.includes(evidence.type) ? evidence.type : 'Other';
-      evidenceRecord = await base44.entities.ResearchEvidence.create({
-        organizationId: asset.organizationId,
-        title: evidence.title || asset.name,
-        description: evidence.description || summary,
-        type: evType,
-        projectId: asset.projectId || analysis.suggestedProjectId || undefined,
-        taskId: asset.taskId || analysis.suggestedTaskId || undefined,
-        fileAssetId: asset.id,
-        uploadedBy: asset.uploadedBy,
-        collectedAt: new Date().toISOString(),
-        metadata: { confidence: evidence.confidence || 0, uncertainFields, rationale: evidence.rationale || '', aiGenerated: true },
-        verified: false
-      });
+      try {
+        const evType = EVIDENCE_TYPES.includes(evidence.type) ? evidence.type : 'Other';
+        evidenceRecord = await base44.entities.ResearchEvidence.create({
+          organizationId: asset.organizationId,
+          title: evidence.title || asset.name,
+          description: evidence.description || summary,
+          type: evType,
+          projectId: asset.projectId || analysis.suggestedProjectId || undefined,
+          taskId: asset.taskId || analysis.suggestedTaskId || undefined,
+          fileAssetId: asset.id,
+          uploadedBy: asset.uploadedBy,
+          collectedAt: new Date().toISOString(),
+          metadata: { confidence: evidence.confidence || 0, uncertainFields, rationale: evidence.rationale || '', aiGenerated: true },
+          verified: false
+        });
+      } catch (evErr) {
+        evidenceRecord = null;
+      }
     }
 
     return Response.json({ ok: true, fileId: asset.id, evidence: evidenceRecord, analysis });

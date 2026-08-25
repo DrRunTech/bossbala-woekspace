@@ -250,7 +250,7 @@ export async function analyzeViaAI(file) {
   const me = await base44.auth.me();
   const documentType = detectDocumentType(file) || "Other";
   const created = await base44.entities.FileAsset.create({
-    organizationId: me?.organizationId,
+    organizationId: me?.data?.organizationId || me?.organizationId,
     name: file.name,
     type: entityTypeFor(documentType),
     documentType,
