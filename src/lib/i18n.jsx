@@ -634,6 +634,7 @@ const translations = {
     "ds.removeLocal": "Remove",
     "ds.localAiNote": "PDF / images / office docs are uploaded and analyzed by AI to extract chartable data; CSV / TSV / JSON are parsed in your browser.",
     "ds.localAiStage": "Analyzing via AI…",
+    "ds.localSheetStage": "Extracting spreadsheet…",
     "ds.localAiErr": "AI analysis failed for {name}.",
   },
   zh: {
@@ -1260,6 +1261,7 @@ const translations = {
     "ds.removeLocal": "移除",
     "ds.localAiNote": "PDF / 图片 / 文档类文件将上传并由 AI 分析以提取可绘图数据；CSV / TSV / JSON 在浏览器内本地解析。",
     "ds.localAiStage": "AI 分析中…",
+    "ds.localSheetStage": "提取表格数据…",
     "ds.localAiErr": "{name} AI 分析失败。",
   },
 };

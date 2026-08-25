@@ -55,17 +55,27 @@ export default function FilesPage() {
   const [busy, setBusy] = useState(false);
   const [stage, setStage] = useState("");
   const [filters, setFilters] = useState({ project: "all", docType: "all", evidenceOnly: false, q: "" });
+  const [me, setMe] = useState(null);
   const fileInput = useRef(null);
 
   const load = async () => {
-    const [a, t] = await Promise.all([
+    const [a, t, u] = await Promise.all([
       base44.entities.FileAsset.list("-created_date", 500),
       base44.entities.Task.list("-created_date", 200),
+      base44.auth.me().catch(() => null),
     ]);
     setAssets(a);
     setTasks(t);
+    setMe(u);
   };
   useEffect(() => { load(); }, []);
+
+  const openUpload = () => {
+    setForm({ ...empty, uploadedBy: members.length ? "" : (me?.id || "") });
+    setFileObj(null);
+    setFileError("");
+    setOpen(true);
+  };
 
   const onFile = (e) => {
     const f = e.target.files?.[0];
@@ -92,7 +102,7 @@ export default function FilesPage() {
   };
 
   const save = async () => {
-    if (!fileObj || !form.uploadedBy) return;
+    if (!fileObj) return;
     setBusy(true);
     setStage(t("files.stage.checking"));
     try {
@@ -141,7 +151,7 @@ export default function FilesPage() {
         storageBackend,
         projectId: form.projectId || undefined,
         taskId: form.taskId || undefined,
-        uploadedBy: form.uploadedBy,
+        uploadedBy: form.uploadedBy || me?.id,
         description: form.description,
         tags: form.tags ? form.tags.split(",").map((s) => s.trim()).filter(Boolean) : [],
         category: form.category,
@@ -201,7 +211,7 @@ export default function FilesPage() {
       <PageHeader
         title={t("files.title")}
         subtitle={t("files.subtitle")}
-        actions={<Button onClick={() => { setForm(empty); setFileObj(null); setFileError(""); setOpen(true); }} disabled={!members.length}><Upload className="h-4 w-4 mr-1.5" /> {t("files.upload")}</Button>}
+        actions={<Button onClick={openUpload}><Upload className="h-4 w-4 mr-1.5" /> {t("files.upload")}</Button>}
       />
 
       <div className="flex items-center gap-2 mb-5 flex-wrap">
@@ -229,7 +239,7 @@ export default function FilesPage() {
       {!assets ? (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">{[...Array(8)].map((_, i) => <div key={i} className="h-40 rounded-xl bg-slate-100 animate-pulse" />)}</div>
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Files} title={t("files.empty.title")} description={t("files.empty.desc", { types: ALLOWED_DOCUMENT_TYPES.join(", ") })} action={<Button onClick={() => setOpen(true)} disabled={!members.length}><Upload className="h-4 w-4 mr-1.5" /> {t("files.upload")}</Button>} />
+        <EmptyState icon={Files} title={t("files.empty.title")} description={t("files.empty.desc", { types: ALLOWED_DOCUMENT_TYPES.join(", ") })} action={<Button onClick={openUpload}><Upload className="h-4 w-4 mr-1.5" /> {t("files.upload")}</Button>} />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((f) => (
@@ -306,7 +316,10 @@ export default function FilesPage() {
                 <Label>{t("files.f.uploadedBy")}</Label>
                 <Select value={form.uploadedBy} onValueChange={(v) => setForm({ ...form, uploadedBy: v })}>
                   <SelectTrigger><SelectValue placeholder={t("common.select")} /></SelectTrigger>
-                  <SelectContent>{members.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}</SelectContent>
+                  <SelectContent>
+                    {members.length === 0 && me?.id && <SelectItem value={me.id}>{me.full_name || me.email || t("common.yourself")}</SelectItem>}
+                    {members.map((m) => <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>)}
+                  </SelectContent>
                 </Select>
               </div>
               <div>
@@ -327,7 +340,7 @@ export default function FilesPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>{t("common.cancel")}</Button>
-            <Button onClick={save} disabled={busy || !fileObj || !form.uploadedBy || !!fileError}>{busy ? t("files.processing") : t("files.upload")}</Button>
+            <Button onClick={save} disabled={busy || !fileObj || !!fileError}>{busy ? t("files.processing") : t("files.upload")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

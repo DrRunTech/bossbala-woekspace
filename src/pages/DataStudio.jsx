@@ -8,7 +8,7 @@ import {
   BarChart3, LineChart as LineIcon, PieChart as PieIcon, RefreshCw, BarChart2, Sparkles, Layers,
   FolderOpen, X,
 } from "lucide-react";
-import { pickLocalFiles, fileToAssetShape, isClientParseable, analyzeViaAI } from "@/lib/localDataParse";
+import { pickLocalFiles, fileToAssetShape, isClientParseable, isSpreadsheet, analyzeViaAI, extractSpreadsheet } from "@/lib/localDataParse";
 import {
   ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -42,7 +42,8 @@ export default function DataStudio() {
       const files = await pickLocalFiles();
       if (files.length === 0) return;
       const clientFiles = files.filter(isClientParseable);
-      const aiFiles = files.filter((f) => !isClientParseable(f));
+      const sheetFiles = files.filter((f) => isSpreadsheet(f));
+      const aiFiles = files.filter((f) => !isClientParseable(f) && !isSpreadsheet(f));
 
       // CSV / TSV / JSON — parse in the browser, nothing uploaded.
       if (clientFiles.length) {
@@ -53,6 +54,18 @@ export default function DataStudio() {
           setSelected((cur) => [...cur, ok[0].id]);
         }
         if (clientFiles.length - ok.length > 0) setLocalErr(t("ds.localParseErr", { name: "" }));
+      }
+
+      // Excel — extract tabular rows server-side, kept as a local asset.
+      for (const f of sheetFiles) {
+        setLocalStage(t("ds.localSheetStage") + " · " + f.name);
+        try {
+          const shaped = await extractSpreadsheet(f);
+          setLocalFiles((cur) => [...cur, shaped]);
+          setSelected((cur) => [...cur, shaped.id]);
+        } catch {
+          setLocalErr((cur) => (cur ? cur + " " : "") + t("ds.localAiErr", { name: f.name }));
+        }
       }
 
       // PDF / images / office — upload + AI extraction, then visualize.

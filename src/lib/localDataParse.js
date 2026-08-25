@@ -184,10 +184,16 @@ export function canPickViaFS() {
 }
 
 const CLIENT_EXTS = ["csv", "tsv", "txt", "dat", "json"];
+const SPREADSHEET_EXTS = ["xls", "xlsx"];
 
 export function isClientParseable(file) {
   const ext = (file.name.split(".").pop() || "").toLowerCase();
   return CLIENT_EXTS.includes(ext);
+}
+
+export function isSpreadsheet(file) {
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  return SPREADSHEET_EXTS.includes(ext);
 }
 
 export async function pickLocalFiles() {
@@ -201,6 +207,12 @@ export async function pickLocalFiles() {
             "text/csv": [".csv", ".tsv", ".txt", ".dat"],
             "application/json": [".json"],
             "application/pdf": [".pdf"],
+            "application/vnd.ms-excel": [".xls"],
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+            "application/msword": [".doc"],
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+            "application/vnd.ms-powerpoint": [".ppt"],
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation": [".pptx"],
             "image/png": [".png"],
             "image/jpeg": [".jpg", ".jpeg"],
             "image/tiff": [".tif", ".tiff"],
@@ -221,7 +233,7 @@ export async function pickLocalFiles() {
     const input = document.createElement("input");
     input.type = "file";
     input.multiple = true;
-    input.accept = ".csv,.tsv,.txt,.dat,.json,.pdf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.gif,.webp";
+    input.accept = ".csv,.tsv,.txt,.dat,.json,.xls,.xlsx,.doc,.docx,.ppt,.pptx,.pdf,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.gif,.webp";
     input.onchange = () => resolve(Array.from(input.files || []));
     input.click();
   });
@@ -253,4 +265,57 @@ export async function analyzeViaAI(file) {
   });
   await base44.functions.invoke("processFileAsset", { fileAssetId: created.id });
   return await base44.entities.FileAsset.get(created.id);
+}
+
+// Build chartable datasets from generic spreadsheet rows (array of objects).
+function rowsToDatasets(rows) {
+  if (!Array.isArray(rows) || rows.length === 0) return [];
+  const cols = Object.keys(rows[0]);
+  const isNum = (c) => rows.slice(0, 50).every((r) => r[c] === "" || r[c] == null || !Number.isNaN(Number(r[c])));
+  const numCols = cols.filter(isNum);
+  if (numCols.length === 0) return [];
+  const labelCol = cols.find((c) => !numCols.includes(c));
+  const labels = rows.map((r, i) => {
+    const v = labelCol ? r[labelCol] : "";
+    return (v === "" || v == null) ? String(i + 1) : String(v);
+  });
+  return numCols.map((c) => ({
+    name: c,
+    chartType: "bar",
+    unit: "",
+    labels,
+    values: rows.map((r) => (r[c] === "" || r[c] == null ? 0 : Number(r[c]))),
+    xLabel: labelCol || "Row",
+    yLabel: c,
+  }));
+}
+
+// Excel files: upload briefly so the extraction integration can read them, pull
+// the tabular rows, and return a local-only asset (no FileAsset record created).
+export async function extractSpreadsheet(file) {
+  const { file_url } = await base44.integrations.Core.UploadFile({ file });
+  let rows = [];
+  try {
+    const res = await base44.integrations.Core.ExtractDataFromUploadedFile({
+      file_url,
+      json_schema: {
+        type: "object",
+        properties: { rows: { type: "array", items: { type: "object", additionalProperties: true } } },
+        required: ["rows"],
+      },
+    });
+    rows = Array.isArray(res?.output?.rows) ? res.output.rows
+      : Array.isArray(res?.output) ? res.output
+      : [];
+  } catch { rows = []; }
+  return {
+    id: "local-" + Math.random().toString(36).slice(2, 9) + "-" + file.name,
+    name: file.name,
+    type: "Spreadsheet",
+    documentType: "Excel",
+    fileUrl: file_url,
+    fileSize: file.size,
+    aiData: { datasets: rowsToDatasets(rows), source: "local-spreadsheet" },
+    _local: true,
+  };
 }
