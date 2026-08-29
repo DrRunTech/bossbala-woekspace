@@ -49,6 +49,10 @@ export default async function(req) {
     const orgId = user?.data?.organizationId;
     if (!orgId) return Response.json({ error: 'No organization configured for user' }, { status: 403 });
 
+    const isAdmin = user.role === 'admin';
+    const appRole = user.data?.appRole;
+    const isLeadRole = appRole === 'PI' || appRole === 'ADMIN' || appRole === 'TEAM_LEADER';
+
     const body = await req.json().catch(() => ({}));
     const { comparisonType = 'this_week_vs_last_week', projectId, memberId } = body;
     const W = WINDOWS[comparisonType] || 7;
@@ -59,19 +63,32 @@ export default async function(req) {
     const scopeProject = comparisonType === 'project_vs_previous' || (projectId && comparisonType !== 'member_vs_previous');
     const scopeMember = comparisonType === 'member_vs_previous' || memberId;
 
-    const projFilter = {};
-    if (orgId) projFilter.organizationId = orgId;
-    if (scopeProject && projectId) projFilter.projectId = projectId;
+    // Authorization: a project-scoped comparison requires read access to that
+    // project (it must belong to the caller's org and the caller must be a lead
+    // or a member/lead of the project). A member-scoped comparison targeting
+    // someone other than the caller requires a lead role.
+    if (scopeProject && projectId) {
+      const proj = await base44.asServiceRole.entities.Project.get(projectId);
+      if (!proj || proj.organizationId !== orgId) return Response.json({ error: 'Project not found' }, { status: 404 });
+      const canSee = isAdmin || isLeadRole || proj.leadId === user.id || (Array.isArray(proj.members) && proj.members.includes(user.id));
+      if (!canSee) return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+    if (scopeMember && memberId && memberId !== user.id && !isAdmin && !isLeadRole) {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
+    // Always org-scope at the query level so a caller can never read another
+    // organization's records, regardless of the projectId/memberId supplied.
+    const orgFilter = { organizationId: orgId };
     const [activities, tasks, files, evidence, projects] = await Promise.all([
-      base44.asServiceRole.entities.Activity.list('-date', 400),
-      base44.asServiceRole.entities.Task.list('-created_date', 500),
-      base44.asServiceRole.entities.FileAsset.list('-created_date', 300),
-      base44.asServiceRole.entities.ResearchEvidence.list('-created_date', 300),
-      base44.asServiceRole.entities.Project.list('-created_date', 300),
+      base44.asServiceRole.entities.Activity.filter(orgFilter, '-date', 400),
+      base44.asServiceRole.entities.Task.filter(orgFilter, '-created_date', 500),
+      base44.asServiceRole.entities.FileAsset.filter(orgFilter, '-created_date', 300),
+      base44.asServiceRole.entities.ResearchEvidence.filter(orgFilter, '-created_date', 300),
+      base44.asServiceRole.entities.Project.filter(orgFilter, '-created_date', 300),
     ]);
 
-    // Apply scope filters.
+    // Apply scope filters (org is already enforced by the queries above).
     let acts = activities, tks = tasks, fls = files, evs = evidence;
     if (scopeProject && projectId) {
       acts = acts.filter((a) => a.projectId === projectId);
@@ -84,12 +101,6 @@ export default async function(req) {
       tks = tks.filter((t) => t.assigneeId === memberId);
       fls = fls.filter((f) => f.uploadedBy === memberId);
       evs = evs.filter((e) => e.uploadedBy === memberId);
-    }
-    if (orgId && !scopeProject && !scopeMember) {
-      acts = acts.filter((a) => a.organizationId === orgId);
-      tks = tks.filter((t) => t.organizationId === orgId);
-      fls = fls.filter((f) => f.organizationId === orgId);
-      evs = evs.filter((e) => e.organizationId === orgId);
     }
 
     // Objective counts (current vs previous).

@@ -51,10 +51,25 @@ export default async function(req) {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     const orgId = user.data?.organizationId || user.organizationId;
+    if (!orgId) return Response.json({ error: 'No organization configured for user' }, { status: 403 });
+
+    // Analysis is a PI/lead feature — it aggregates across the organization via
+    // asServiceRole, so require an authorized lead role before any query.
+    const isAdmin = user.role === 'admin';
+    const appRole = user.data?.appRole;
+    if (!isAdmin && appRole !== 'PI' && appRole !== 'ADMIN' && appRole !== 'TEAM_LEADER') {
+      return Response.json({ error: 'Forbidden: analysis requires a PI, admin, or team-lead role' }, { status: 403 });
+    }
 
     const body = await req.json();
     const { type, projectId, memberId } = body;
     if (!type) return Response.json({ error: 'type is required' }, { status: 400 });
+
+    // When a project is targeted, verify it belongs to the caller's organization.
+    if (projectId) {
+      const proj = await base44.asServiceRole.entities.Project.get(projectId);
+      if (!proj || proj.organizationId !== orgId) return Response.json({ error: 'Project not found' }, { status: 404 });
+    }
 
     const periodDays = TYPE_PERIOD[type] || 30;
     const cutoff = isoDaysAgo(periodDays);
@@ -63,15 +78,21 @@ export default async function(req) {
     if (projectId) scope.projectId = projectId;
 
     // Gather evidence (service role so analysis sees the full org regardless of
-    // the caller's per-record RLS — analysis is a PI/lead feature).
-    const [activities, tasks, files, evidence, risks, allProjects] = await Promise.all([
+    // the caller's per-record RLS — gated to lead roles above).
+    const allProjects = authed ? await base44.asServiceRole.entities.Project.filter({ organizationId: orgId }, 'name', 200) : [];
+    const orgProjectIds = new Set(allProjects.map((p) => p.id));
+
+    const [activities, tasks, files, evidence, risksRaw] = await Promise.all([
       authed ? base44.asServiceRole.entities.Activity.filter(scope, '-date', 200) : [],
       authed ? base44.asServiceRole.entities.Task.filter(scope, '-created_date', 200) : [],
       authed ? base44.asServiceRole.entities.FileAsset.filter(scope, '-created_date', 80) : [],
       authed ? base44.asServiceRole.entities.ResearchEvidence.filter(scope, '-created_date', 60) : [],
+      // Risk has no organizationId field, so scope by project membership: when a
+      // project is targeted query by it, otherwise fetch and keep only risks whose
+      // projectId belongs to the caller's organization.
       authed ? base44.asServiceRole.entities.Risk.filter(projectId ? { projectId } : {}, '-created_date', 100) : [],
-      authed ? base44.asServiceRole.entities.Project.filter({ organizationId: orgId }, 'name', 200) : [],
     ]);
+    const risks = projectId ? risksRaw : risksRaw.filter((r) => orgProjectIds.has(r.projectId));
 
     // Narrow to the period + member scope.
     const inPeriod = (d) => !d || new Date(d) >= new Date(cutoff);
