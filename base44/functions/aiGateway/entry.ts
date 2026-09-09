@@ -15,10 +15,17 @@ export default async function(req) {
     const body = await req.json();
     const action = body.action;
 
+    // Infrastructure status/test/models are admin-panel operations: they expose
+    // the local gateway tunnel URL, configured model names, and let the caller
+    // drive requests against the local gateway. Restrict them to admins.
+    // Chat/analysis/embedding stay available to all authenticated users.
+    const isAdmin = user.role === 'admin';
+
     switch (action) {
       case 'health':
         return Response.json({ ok: true, ...await gateway.health() });
       case 'models':
+        if (!isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });
         return Response.json({ ok: true, ...await gateway.models() });
       case 'chat':
         return Response.json({ ok: true, content: await gateway.chat(base44, body) });
@@ -29,8 +36,10 @@ export default async function(req) {
       case 'document_analyze':
         return Response.json({ ok: true, result: await gateway.documentAnalyze(base44, body) });
       case 'status':
+        if (!isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });
         return Response.json(await buildStatus());
       case 'test':
+        if (!isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });
         return Response.json(await runTest());
       default:
         return Response.json({ error: `unknown action: ${action}` }, { status: 400 });
